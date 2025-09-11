@@ -11,12 +11,19 @@ interface JsonExportPanelProps {
 export default function JsonExportPanel({ nodes, edges, onMinimize }: JsonExportPanelProps) {
   const { toast } = useToast();
 
+  // Helper function to get connected nodes
+  const getNextStepId = (nodeId: string) => {
+    const outgoingEdge = edges.find(edge => edge.source === nodeId);
+    return outgoingEdge ? outgoingEdge.target : null;
+  };
+
   const flowData = {
     nodes: nodes.map(node => ({
       id: node.id,
       type: node.type,
       data: node.data,
       position: node.position,
+      nextStepId: getNextStepId(node.id),
     })),
     edges: edges.map(edge => ({
       id: edge.id,
