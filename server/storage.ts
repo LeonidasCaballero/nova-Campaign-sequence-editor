@@ -52,8 +52,11 @@ export class MemStorage implements IStorage {
     const id = randomUUID();
     const now = new Date();
     const flowSequence: FlowSequence = {
-      ...insertFlowSequence,
       id,
+      name: insertFlowSequence.name,
+      description: insertFlowSequence.description || null,
+      nodes: insertFlowSequence.nodes,
+      edges: insertFlowSequence.edges,
       createdAt: now,
       updatedAt: now,
     };

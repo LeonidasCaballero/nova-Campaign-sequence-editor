@@ -99,7 +99,6 @@ export default function FlowCanvas({
         data-testid="flow-canvas"
       >
         <Background 
-          variant="dots" 
           gap={20} 
           size={1}
           color="#374151"
