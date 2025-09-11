@@ -18,28 +18,13 @@ export default function NodePalette() {
               className="node-action bg-card border border-border rounded-lg p-3 cursor-grab hover:shadow-md transition-shadow"
               draggable
               onDragStart={(event) => onDragStart(event, "action")}
-              data-testid="palette-action-send-contact-request"
+              data-testid="palette-action"
             >
               <div className="flex items-center space-x-2">
                 <i className="fas fa-play text-emerald-600"></i>
                 <div>
-                  <div className="text-sm font-medium">Send Contact Request</div>
-                  <div className="text-xs text-muted-foreground">SEND_CONTACT_REQUEST</div>
-                </div>
-              </div>
-            </div>
-
-            <div
-              className="node-action bg-card border border-border rounded-lg p-3 cursor-grab hover:shadow-md transition-shadow"
-              draggable
-              onDragStart={(event) => onDragStart(event, "action")}
-              data-testid="palette-action-send-message"
-            >
-              <div className="flex items-center space-x-2">
-                <i className="fas fa-envelope text-emerald-600"></i>
-                <div>
-                  <div className="text-sm font-medium">Send Message</div>
-                  <div className="text-xs text-muted-foreground">SEND_MESSAGE</div>
+                  <div className="text-sm font-medium">Action</div>
+                  <div className="text-xs text-muted-foreground">Single action step</div>
                 </div>
               </div>
             </div>
@@ -61,29 +46,7 @@ export default function NodePalette() {
                 <i className="fas fa-question-circle text-amber-600"></i>
                 <div>
                   <div className="text-sm font-medium">Condition</div>
-                  <div className="text-xs text-muted-foreground">Basic condition</div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div>
-          <h3 className="text-sm font-medium text-muted-foreground mb-2 uppercase tracking-wide">
-            Condition Checks
-          </h3>
-          <div className="space-y-2">
-            <div
-              className="node-condition-check bg-card border border-border rounded-lg p-3 cursor-grab hover:shadow-md transition-shadow"
-              draggable
-              onDragStart={(event) => onDragStart(event, "condition_check")}
-              data-testid="palette-condition-check"
-            >
-              <div className="flex items-center space-x-2">
-                <i className="fas fa-check-circle text-red-600"></i>
-                <div>
-                  <div className="text-sm font-medium">Condition Check</div>
-                  <div className="text-xs text-muted-foreground">Validate conditions</div>
+                  <div className="text-xs text-muted-foreground">Conditional branching</div>
                 </div>
               </div>
             </div>

@@ -17,12 +17,11 @@ import PropertiesPanel from "@/components/flow-editor/properties-panel";
 import JsonExportPanel from "@/components/flow-editor/json-export-panel";
 import ActionNode from "@/components/flow-editor/custom-nodes/action-node";
 import ConditionNode from "@/components/flow-editor/custom-nodes/condition-node";
-import ConditionCheckNode from "@/components/flow-editor/custom-nodes/condition-check-node";
+import { v4 as uuidv4 } from 'uuid';
 
 const nodeTypes = {
   action: ActionNode,
   condition: ConditionNode,
-  condition_check: ConditionCheckNode,
 };
 
 const initialNodes: Node[] = [];
@@ -87,7 +86,7 @@ export default function FlowEditor() {
       });
 
       const newNode: Node = {
-        id: `${type}_${Date.now()}`,
+        id: uuidv4(),
         type,
         position,
         data: getDefaultNodeData(type),
@@ -102,21 +101,20 @@ export default function FlowEditor() {
     switch (type) {
       case "action":
         return {
-          actions: [
-            {
-              action: "SEND_CONTACT_REQUEST",
-              provider: "LINKEDIN",
-            },
-          ],
+          action: "SEND_CONTACT_REQUEST",
+          provider: "LINKEDIN",
         };
       case "condition":
-        return {};
-      case "condition_check":
         return {
-          conditions: [
+          child: [
             {
-              condition: "IS_LINKEDIN_CONTACT",
-              value: true,
+              nextStepId: null,
+              checks: [
+                {
+                  condition: "IS_LINKEDIN_CONTACT",
+                  value: true,
+                },
+              ],
             },
           ],
         };
