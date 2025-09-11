@@ -26,7 +26,6 @@ export default function JsonExportPanel({ nodes, edges, onMinimize }: JsonExport
       id: node.id,
       type: node.type,
       data: node.data,
-      position: node.position,
       nextStepId: getNextStepId(node.id), // For backward compatibility 
       nextStepIds: getNextStepIds(node.id), // All linked node IDs
     })),

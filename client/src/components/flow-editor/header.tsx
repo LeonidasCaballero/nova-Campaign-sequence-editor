@@ -1,15 +1,10 @@
 import { Node, Edge } from "reactflow";
 import { Button } from "@/components/ui/button";
-import { useQuery, useMutation } from "@tanstack/react-query";
-import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
-import { FlowSequence } from "@shared/schema";
 
 interface HeaderProps {
   nodes: Node[];
   edges: Edge[];
-  onSave: () => void;
-  onLoad: () => void;
   onExportJson: () => void;
   deleteSelectedNode: () => void;
   hasSelectedNode: boolean;
@@ -18,52 +13,38 @@ interface HeaderProps {
 export default function Header({
   nodes,
   edges,
-  onSave,
-  onLoad,
   onExportJson,
   deleteSelectedNode,
   hasSelectedNode,
 }: HeaderProps) {
   const { toast } = useToast();
 
-  const { data: flows } = useQuery<FlowSequence[]>({
-    queryKey: ["/api/flows"],
-  });
-
-  const saveFlowMutation = useMutation({
-    mutationFn: async () => {
-      const flowData = {
-        name: `Flow ${new Date().toISOString()}`,
-        description: "Generated flow sequence",
-        nodes: nodes,
-        edges: edges,
-      };
-      return apiRequest("POST", "/api/flows", flowData);
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/flows"] });
-      toast({
-        title: "Success",
-        description: "Flow saved successfully",
-      });
-    },
-    onError: () => {
-      toast({
-        title: "Error",
-        description: "Failed to save flow",
-        variant: "destructive",
-      });
-    },
-  });
-
-  const handleSave = () => {
-    saveFlowMutation.mutate();
-  };
-
   const handleExportJson = () => {
+    // Helper function to get connected nodes
+    const getNextStepIds = (nodeId: string) => {
+      return edges.filter(edge => edge.source === nodeId).map(edge => edge.target);
+    };
+
+    const getNextStepId = (nodeId: string) => {
+      const outgoingEdges = getNextStepIds(nodeId);
+      return outgoingEdges.length > 0 ? outgoingEdges[0] : null;
+    };
+
     const flowData = {
-      nodes: nodes,
-      edges: edges,
+      nodes: nodes.map(node => ({
+        id: node.id,
+        type: node.type,
+        data: node.data,
+        nextStepId: getNextStepId(node.id), // For backward compatibility 
+        nextStepIds: getNextStepIds(node.id), // All linked node IDs
+      })),
+      edges: edges.map(edge => ({
+        id: edge.id,
+        source: edge.source,
+        target: edge.target,
+        sourceHandle: edge.sourceHandle,
+        targetHandle: edge.targetHandle,
+      })),
     };
     
     const dataStr = JSON.stringify(flowData, null, 2);
@@ -95,27 +76,6 @@ export default function Header({
       </div>
 
       <div className="flex items-center space-x-4">
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={onLoad}
-          data-testid="button-open"
-        >
-          <i className="fas fa-folder-open mr-2"></i>
-          Open
-        </Button>
-        
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={handleSave}
-          disabled={saveFlowMutation.isPending}
-          data-testid="button-save"
-        >
-          <i className="fas fa-save mr-2"></i>
-          {saveFlowMutation.isPending ? "Saving..." : "Save"}
-        </Button>
-        
         <Button
           onClick={handleExportJson}
           data-testid="button-export-json"

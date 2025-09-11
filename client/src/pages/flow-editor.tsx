@@ -151,8 +151,6 @@ export default function FlowEditor() {
       <Header
         nodes={nodes}
         edges={edges}
-        onSave={() => {}}
-        onLoad={() => {}}
         onExportJson={() => {}}
         deleteSelectedNode={deleteSelectedNode}
         hasSelectedNode={!!selectedNode}
