@@ -81,12 +81,35 @@ export default function NodePalette({ nodes = [], edges = [], showJsonExport = f
       child: conditionNode.checks
     }));
 
+    // Handle standalone condition_check nodes (not connected to any condition)
+    const connectedConditionCheckIds = new Set();
+    edges.forEach(edge => {
+      const sourceNode = conditionMap.get(edge.source);
+      const targetNode = conditionCheckMap.get(edge.target);
+      if (sourceNode && targetNode) {
+        connectedConditionCheckIds.add(edge.target);
+      }
+    });
+
+    const standaloneConditionCheckNodes = Array.from(conditionCheckMap.values())
+      .filter((node: any) => !connectedConditionCheckIds.has(node.id))
+      .map((node: any) => {
+        const conditionCheckData = node.data as any;
+        return {
+          id: node.id,
+          type: "CONDITION_CHECK",
+          conditions: conditionCheckData.conditions || []
+        };
+      });
+
     return {
-      nodes: [...actionNodes, ...conditionNodes]
+      nodes: [...actionNodes, ...conditionNodes, ...standaloneConditionCheckNodes]
     };
   };
 
-  const jsonString = showJsonExport ? JSON.stringify(generateFlowData(), null, 2) : "";
+  const flowData = generateFlowData();
+  const jsonString = showJsonExport ? JSON.stringify(flowData, null, 2) : "";
+
 
   const copyToClipboard = () => {
     navigator.clipboard.writeText(jsonString).then(() => {

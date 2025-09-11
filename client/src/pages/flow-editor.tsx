@@ -125,12 +125,20 @@ export default function FlowEditor() {
   const updateNodeData = useCallback(
     (nodeId: string, newData: any) => {
       setNodes((nds) =>
-        nds.map((node) =>
-          node.id === nodeId ? { ...node, data: { ...node.data, ...newData } } : node
-        )
+        nds.map((node) => {
+          if (node.id === nodeId) {
+            const updatedNode = { ...node, data: { ...node.data, ...newData } };
+            // Update selectedNode if it's the same node being updated
+            if (selectedNode && selectedNode.id === nodeId) {
+              setSelectedNode(updatedNode);
+            }
+            return updatedNode;
+          }
+          return node;
+        })
       );
     },
-    [setNodes]
+    [setNodes, selectedNode]
   );
 
   const deleteSelectedNode = useCallback(() => {
@@ -212,19 +220,7 @@ export default function FlowEditor() {
         />
       </div>
 
-      {showJsonPanel && (
-        {/* JSON export is now integrated into the sidebar */}
-      )}
-
-      {!showJsonPanel && (
-        <button
-          className="fixed bottom-4 right-4 floating-panel rounded-lg p-3 z-30"
-          onClick={() => setShowJsonPanel(true)}
-          data-testid="button-show-json-panel"
-        >
-          <i className="fas fa-code text-muted-foreground"></i>
-        </button>
-      )}
+      {/* JSON export is now integrated into the sidebar */}
     </div>
   );
 }
