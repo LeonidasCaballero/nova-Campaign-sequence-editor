@@ -31,20 +31,36 @@ export default function Header({
     };
 
     const flowData = {
-      nodes: nodes.map(node => ({
-        id: node.id,
-        type: node.type,
-        data: node.data,
-        nextStepId: getNextStepId(node.id), // For backward compatibility 
-        nextStepIds: getNextStepIds(node.id), // All linked node IDs
-      })),
-      edges: edges.map(edge => ({
-        id: edge.id,
-        source: edge.source,
-        target: edge.target,
-        sourceHandle: edge.sourceHandle,
-        targetHandle: edge.targetHandle,
-      })),
+      nodes: nodes.map(node => {
+        const baseNode = {
+          id: node.id,
+          type: node.type,
+        };
+
+        // Transform node data based on type
+        if (node.type === "action") {
+          let data = node.data as any;
+          // Handle backward compatibility with old format
+          if (data.actions && Array.isArray(data.actions)) {
+            data = data.actions[0] || { action: "SEND_CONTACT_REQUEST", provider: "LINKEDIN" };
+          }
+          
+          return {
+            ...baseNode,
+            action: data.action,
+            provider: data.provider,
+            ...(data.message && { message: data.message }),
+          };
+        } else if (node.type === "condition") {
+          const data = node.data as any;
+          return {
+            ...baseNode,
+            child: data.child || [],
+          };
+        }
+
+        return baseNode;
+      }),
     };
     
     const dataStr = JSON.stringify(flowData, null, 2);
