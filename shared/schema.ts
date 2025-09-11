@@ -29,7 +29,7 @@ export const actionSchema = z.object({
 // Node data schemas
 export const actionNodeDataSchema = actionSchema;
 
-export const conditionCheckSchema = z.object({
+export const conditionSchema = z.object({
   condition: z.enum([
     "IS_NOVA",
     "IS_NOVA_CONTACT", 
@@ -39,23 +39,20 @@ export const conditionCheckSchema = z.object({
     "HAS_REJECTED_CONTACT_LINKEDIN"
   ]),
   value: z.boolean(),
-  conditionExtraValue: z.object({
-    timeInHours: z.number(),
-  }).optional(),
+  timeInHours: z.number().optional(),
 });
 
-export const conditionChildSchema = z.object({
-  nextStepId: z.string().nullable(),
-  checks: z.array(conditionCheckSchema),
+export const conditionCheckNodeDataSchema = z.object({
+  conditions: z.array(conditionSchema),
 });
 
 export const conditionNodeDataSchema = z.object({
-  child: z.array(conditionChildSchema),
+  // Basic condition node data - links only to condition checks
 });
 
 export const flowNodeSchema = z.object({
   id: z.string(),
-  type: z.enum(["action", "condition"]),
+  type: z.enum(["action", "condition", "condition_check"]),
   position: z.object({
     x: z.number(),
     y: z.number(),
@@ -63,6 +60,7 @@ export const flowNodeSchema = z.object({
   data: z.union([
     actionNodeDataSchema,
     conditionNodeDataSchema,
+    conditionCheckNodeDataSchema,
   ]),
 });
 
@@ -97,5 +95,5 @@ export type FlowEdge = z.infer<typeof flowEdgeSchema>;
 export type Action = z.infer<typeof actionSchema>;
 export type ActionNodeData = z.infer<typeof actionNodeDataSchema>;
 export type ConditionNodeData = z.infer<typeof conditionNodeDataSchema>;
-export type ConditionCheck = z.infer<typeof conditionCheckSchema>;
-export type ConditionChild = z.infer<typeof conditionChildSchema>;
+export type ConditionCheckNodeData = z.infer<typeof conditionCheckNodeDataSchema>;
+export type Condition = z.infer<typeof conditionSchema>;

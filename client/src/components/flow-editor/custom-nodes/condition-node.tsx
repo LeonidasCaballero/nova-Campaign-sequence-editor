@@ -3,8 +3,6 @@ import { Handle, Position, NodeProps } from "reactflow";
 import { ConditionNodeData } from "@shared/schema";
 
 function ConditionNode({ data }: NodeProps<ConditionNodeData>) {
-  const childCount = data.child.length;
-
   return (
     <div className="bg-white rounded-lg shadow-lg border border-gray-200 node-condition min-w-[80px]">
       <Handle
@@ -27,7 +25,7 @@ function ConditionNode({ data }: NodeProps<ConditionNodeData>) {
         </div>
         
         <div className="text-xs text-muted-foreground">
-          {childCount} path{childCount !== 1 ? 's' : ''}
+          Links to checks
         </div>
       </div>
     </div>

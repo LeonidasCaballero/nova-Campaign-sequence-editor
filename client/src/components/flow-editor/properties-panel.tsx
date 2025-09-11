@@ -4,7 +4,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
-import { ActionNodeData, ConditionNodeData, ConditionCheck, ConditionChild } from "@shared/schema";
+import { ActionNodeData, ConditionNodeData, ConditionCheckNodeData, Condition } from "@shared/schema";
 
 interface PropertiesPanelProps {
   selectedNode: Node | null;
@@ -87,180 +87,106 @@ export default function PropertiesPanel({
     );
   };
 
-  const renderConditionNodeProperties = (node: Node) => {
-    const data = node.data as ConditionNodeData;
+  const renderConditionCheckNodeProperties = (node: Node) => {
+    const data = node.data as ConditionCheckNodeData;
     
-    const addChild = () => {
-      const newChild: ConditionChild = {
-        nextStepId: null,
-        checks: [{
-          condition: "IS_LINKEDIN_CONTACT",
-          value: true,
-        }],
-      };
-      updateNodeData(node.id, {
-        child: [...data.child, newChild],
-      });
-    };
-
-    const removeChild = (index: number) => {
-      const newChildren = data.child.filter((_, i) => i !== index);
-      updateNodeData(node.id, { child: newChildren });
-    };
-
-    const updateChild = (childIndex: number, field: keyof ConditionChild, value: any) => {
-      const newChildren = data.child.map((child, i) =>
-        i === childIndex ? { ...child, [field]: value } : child
-      );
-      updateNodeData(node.id, { child: newChildren });
-    };
-
-    const addCheck = (childIndex: number) => {
-      const newCheck: ConditionCheck = {
+    const addCondition = () => {
+      const newCondition: Condition = {
         condition: "IS_LINKEDIN_CONTACT",
         value: true,
       };
-      const newChildren = data.child.map((child, i) =>
-        i === childIndex ? { ...child, checks: [...child.checks, newCheck] } : child
-      );
-      updateNodeData(node.id, { child: newChildren });
+      updateNodeData(node.id, {
+        conditions: [...data.conditions, newCondition],
+      });
     };
 
-    const removeCheck = (childIndex: number, checkIndex: number) => {
-      const newChildren = data.child.map((child, i) =>
-        i === childIndex ? { ...child, checks: child.checks.filter((_, j) => j !== checkIndex) } : child
-      );
-      updateNodeData(node.id, { child: newChildren });
+    const removeCondition = (index: number) => {
+      const newConditions = data.conditions.filter((_, i) => i !== index);
+      updateNodeData(node.id, { conditions: newConditions });
     };
 
-    const updateCheck = (childIndex: number, checkIndex: number, field: keyof ConditionCheck, value: any) => {
-      const newChildren = data.child.map((child, i) =>
-        i === childIndex ? {
-          ...child,
-          checks: child.checks.map((check, j) =>
-            j === checkIndex ? { ...check, [field]: value } : check
-          )
-        } : child
+    const updateCondition = (index: number, field: keyof Condition, value: any) => {
+      const newConditions = data.conditions.map((condition, i) =>
+        i === index ? { ...condition, [field]: value } : condition
       );
-      updateNodeData(node.id, { child: newChildren });
+      updateNodeData(node.id, { conditions: newConditions });
     };
 
     return (
-      <div className="space-y-4">
+      <div className="space-y-3">
         <div className="flex items-center justify-between">
-          <Label>Condition Paths</Label>
+          <Label>Conditions</Label>
           <Button 
             size="sm" 
-            onClick={addChild}
-            data-testid="button-add-child"
+            onClick={addCondition}
+            data-testid="button-add-condition"
           >
-            Add Path
+            Add
           </Button>
         </div>
 
-        {data.child.map((child, childIndex) => (
-          <div key={childIndex} className="bg-muted p-3 rounded-lg space-y-3">
+        {data.conditions.map((condition, index) => (
+          <div key={index} className="bg-muted p-3 rounded-lg space-y-2">
             <div className="flex items-center justify-between">
-              <span className="text-sm font-medium">Path {childIndex + 1}</span>
+              <span className="text-sm font-medium">Condition {index + 1}</span>
               <Button
                 size="sm"
                 variant="ghost"
-                onClick={() => removeChild(childIndex)}
-                data-testid={`button-remove-child-${childIndex}`}
+                onClick={() => removeCondition(index)}
+                data-testid={`button-remove-condition-${index}`}
               >
                 Remove
               </Button>
             </div>
 
             <div>
-              <Label>Next Step ID</Label>
-              <Input
-                value={child.nextStepId || ""}
-                onChange={(e) => updateChild(childIndex, "nextStepId", e.target.value || null)}
-                placeholder="Enter next step ID or leave empty"
-                data-testid={`input-next-step-${childIndex}`}
-              />
+              <Label>Condition Type</Label>
+              <Select
+                value={condition.condition}
+                onValueChange={(value) => updateCondition(index, "condition", value)}
+              >
+                <SelectTrigger data-testid={`select-condition-type-${index}`}>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="IS_NOVA">IS_NOVA</SelectItem>
+                  <SelectItem value="IS_NOVA_CONTACT">IS_NOVA_CONTACT</SelectItem>
+                  <SelectItem value="IS_LINKEDIN_CONTACT">IS_LINKEDIN_CONTACT</SelectItem>
+                  <SelectItem value="HAS_TIME_PASSED">HAS_TIME_PASSED</SelectItem>
+                  <SelectItem value="HAS_REJECTED_CONTACT_NOVA">HAS_REJECTED_CONTACT_NOVA</SelectItem>
+                  <SelectItem value="HAS_REJECTED_CONTACT_LINKEDIN">HAS_REJECTED_CONTACT_LINKEDIN</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
 
-            <div className="space-y-2">
-              <div className="flex items-center justify-between">
-                <Label>Checks</Label>
-                <Button 
-                  size="sm" 
-                  onClick={() => addCheck(childIndex)}
-                  data-testid={`button-add-check-${childIndex}`}
-                >
-                  Add Check
-                </Button>
+            <div>
+              <Label>Value</Label>
+              <Select
+                value={condition.value.toString()}
+                onValueChange={(value) => updateCondition(index, "value", value === "true")}
+              >
+                <SelectTrigger data-testid={`select-condition-value-${index}`}>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="true">true</SelectItem>
+                  <SelectItem value="false">false</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            {condition.condition === "HAS_TIME_PASSED" && (
+              <div>
+                <Label>Time in Hours</Label>
+                <Input
+                  type="number"
+                  value={condition.timeInHours || ""}
+                  onChange={(e) => updateCondition(index, "timeInHours", parseInt(e.target.value) || 0)}
+                  placeholder="Enter hours"
+                  data-testid={`input-time-hours-${index}`}
+                />
               </div>
-
-              {child.checks.map((check, checkIndex) => (
-                <div key={checkIndex} className="bg-background p-2 rounded space-y-2">
-                  <div className="flex items-center justify-between">
-                    <span className="text-xs font-medium">Check {checkIndex + 1}</span>
-                    <Button
-                      size="sm"
-                      variant="ghost"
-                      onClick={() => removeCheck(childIndex, checkIndex)}
-                      data-testid={`button-remove-check-${childIndex}-${checkIndex}`}
-                    >
-                      Remove
-                    </Button>
-                  </div>
-
-                  <div>
-                    <Label>Condition Type</Label>
-                    <Select
-                      value={check.condition}
-                      onValueChange={(value) => updateCheck(childIndex, checkIndex, "condition", value)}
-                    >
-                      <SelectTrigger data-testid={`select-condition-type-${childIndex}-${checkIndex}`}>
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="IS_NOVA">IS_NOVA</SelectItem>
-                        <SelectItem value="IS_NOVA_CONTACT">IS_NOVA_CONTACT</SelectItem>
-                        <SelectItem value="IS_LINKEDIN_CONTACT">IS_LINKEDIN_CONTACT</SelectItem>
-                        <SelectItem value="HAS_TIME_PASSED">HAS_TIME_PASSED</SelectItem>
-                        <SelectItem value="HAS_REJECTED_CONTACT_NOVA">HAS_REJECTED_CONTACT_NOVA</SelectItem>
-                        <SelectItem value="HAS_REJECTED_CONTACT_LINKEDIN">HAS_REJECTED_CONTACT_LINKEDIN</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-
-                  <div>
-                    <Label>Value</Label>
-                    <Select
-                      value={check.value.toString()}
-                      onValueChange={(value) => updateCheck(childIndex, checkIndex, "value", value === "true")}
-                    >
-                      <SelectTrigger data-testid={`select-condition-value-${childIndex}-${checkIndex}`}>
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="true">true</SelectItem>
-                        <SelectItem value="false">false</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-
-                  {check.condition === "HAS_TIME_PASSED" && (
-                    <div>
-                      <Label>Time in Hours</Label>
-                      <Input
-                        type="number"
-                        value={check.conditionExtraValue?.timeInHours || ""}
-                        onChange={(e) => updateCheck(childIndex, checkIndex, "conditionExtraValue", {
-                          timeInHours: parseInt(e.target.value) || 0
-                        })}
-                        placeholder="Enter hours"
-                        data-testid={`input-time-hours-${childIndex}-${checkIndex}`}
-                      />
-                    </div>
-                  )}
-                </div>
-              ))}
-            </div>
+            )}
           </div>
         ))}
       </div>
@@ -296,13 +222,21 @@ export default function PropertiesPanel({
               {selectedNode.type === "condition" && (
                 <i className="fas fa-question-circle text-amber-600"></i>
               )}
+              {selectedNode.type === "condition_check" && (
+                <i className="fas fa-check-circle text-red-600"></i>
+              )}
               <h3 className="font-medium capitalize">
                 {selectedNode.type?.replace("_", " ")} Node
               </h3>
             </div>
 
             {selectedNode.type === "action" && renderActionNodeProperties(selectedNode)}
-            {selectedNode.type === "condition" && renderConditionNodeProperties(selectedNode)}
+            {selectedNode.type === "condition_check" && renderConditionCheckNodeProperties(selectedNode)}
+            {selectedNode.type === "condition" && (
+              <div className="text-sm text-muted-foreground">
+                Condition nodes link to condition checks
+              </div>
+            )}
           </div>
 
           <div>

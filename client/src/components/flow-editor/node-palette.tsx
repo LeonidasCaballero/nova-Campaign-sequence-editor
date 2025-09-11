@@ -52,6 +52,28 @@ export default function NodePalette() {
             </div>
           </div>
         </div>
+
+        <div>
+          <h3 className="text-sm font-medium text-muted-foreground mb-2 uppercase tracking-wide">
+            Condition Checks
+          </h3>
+          <div className="space-y-2">
+            <div
+              className="node-condition-check bg-card border border-border rounded-lg p-3 cursor-grab hover:shadow-md transition-shadow"
+              draggable
+              onDragStart={(event) => onDragStart(event, "condition_check")}
+              data-testid="palette-condition-check"
+            >
+              <div className="flex items-center space-x-2">
+                <i className="fas fa-check-circle text-red-600"></i>
+                <div>
+                  <div className="text-sm font-medium">Condition Check</div>
+                  <div className="text-xs text-muted-foreground">Validate conditions</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
     </aside>
   );
