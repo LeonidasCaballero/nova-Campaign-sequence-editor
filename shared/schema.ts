@@ -19,11 +19,16 @@ export const flowSequences = pgTable("flow_sequences", {
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
 
-// Node data schemas
-export const actionNodeDataSchema = z.object({
+// Individual action schema
+export const actionSchema = z.object({
   action: z.enum(["SEND_CONTACT_REQUEST", "SEND_MESSAGE"]),
   provider: z.enum(["NOVA", "LINKEDIN"]),
   message: z.string().optional(),
+});
+
+// Node data schemas
+export const actionNodeDataSchema = z.object({
+  actions: z.array(actionSchema),
 });
 
 export const conditionSchema = z.object({
@@ -89,6 +94,7 @@ export type InsertFlowSequence = z.infer<typeof insertFlowSequenceSchema>;
 export type UpdateFlowSequence = z.infer<typeof updateFlowSequenceSchema>;
 export type FlowNode = z.infer<typeof flowNodeSchema>;
 export type FlowEdge = z.infer<typeof flowEdgeSchema>;
+export type Action = z.infer<typeof actionSchema>;
 export type ActionNodeData = z.infer<typeof actionNodeDataSchema>;
 export type ConditionNodeData = z.infer<typeof conditionNodeDataSchema>;
 export type ConditionCheckNodeData = z.infer<typeof conditionCheckNodeDataSchema>;

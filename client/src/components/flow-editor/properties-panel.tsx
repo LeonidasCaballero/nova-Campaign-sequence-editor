@@ -4,7 +4,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
-import { ActionNodeData, ConditionCheckNodeData, Condition } from "@shared/schema";
+import { ActionNodeData, ConditionCheckNodeData, Condition, Action } from "@shared/schema";
 
 interface PropertiesPanelProps {
   selectedNode: Node | null;
@@ -28,53 +28,101 @@ export default function PropertiesPanel({
   const renderActionNodeProperties = (node: Node) => {
     const data = node.data as ActionNodeData;
     
+    const addAction = () => {
+      const newAction: Action = {
+        action: "SEND_CONTACT_REQUEST",
+        provider: "LINKEDIN",
+      };
+      updateNodeData(node.id, {
+        actions: [...data.actions, newAction],
+      });
+    };
+
+    const removeAction = (index: number) => {
+      const newActions = data.actions.filter((_, i) => i !== index);
+      updateNodeData(node.id, { actions: newActions });
+    };
+
+    const updateAction = (index: number, field: keyof Action, value: any) => {
+      const newActions = data.actions.map((action, i) =>
+        i === index ? { ...action, [field]: value } : action
+      );
+      updateNodeData(node.id, { actions: newActions });
+    };
+
     return (
       <div className="space-y-3">
-        <div>
-          <Label htmlFor="action-type">Action Type</Label>
-          <Select
-            value={data.action}
-            onValueChange={(value) => updateNodeData(node.id, { action: value })}
+        <div className="flex items-center justify-between">
+          <Label>Actions</Label>
+          <Button 
+            size="sm" 
+            onClick={addAction}
+            data-testid="button-add-action"
           >
-            <SelectTrigger data-testid="select-action-type">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="SEND_CONTACT_REQUEST">SEND_CONTACT_REQUEST</SelectItem>
-              <SelectItem value="SEND_MESSAGE">SEND_MESSAGE</SelectItem>
-            </SelectContent>
-          </Select>
+            Add
+          </Button>
         </div>
 
-        <div>
-          <Label htmlFor="provider">Provider</Label>
-          <Select
-            value={data.provider}
-            onValueChange={(value) => updateNodeData(node.id, { provider: value })}
-          >
-            <SelectTrigger data-testid="select-provider">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="NOVA">NOVA</SelectItem>
-              <SelectItem value="LINKEDIN">LINKEDIN</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
+        {data.actions.map((action, index) => (
+          <div key={index} className="bg-muted p-3 rounded-lg space-y-2">
+            <div className="flex items-center justify-between">
+              <span className="text-sm font-medium">Action {index + 1}</span>
+              <Button
+                size="sm"
+                variant="ghost"
+                onClick={() => removeAction(index)}
+                data-testid={`button-remove-action-${index}`}
+              >
+                Remove
+              </Button>
+            </div>
 
-        {data.action === "SEND_MESSAGE" && (
-          <div>
-            <Label htmlFor="message">Message</Label>
-            <Textarea
-              id="message"
-              value={data.message || ""}
-              onChange={(e) => updateNodeData(node.id, { message: e.target.value })}
-              placeholder="Enter your message..."
-              rows={3}
-              data-testid="textarea-message"
-            />
+            <div>
+              <Label>Action Type</Label>
+              <Select
+                value={action.action}
+                onValueChange={(value) => updateAction(index, "action", value)}
+              >
+                <SelectTrigger data-testid={`select-action-type-${index}`}>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="SEND_CONTACT_REQUEST">SEND_CONTACT_REQUEST</SelectItem>
+                  <SelectItem value="SEND_MESSAGE">SEND_MESSAGE</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div>
+              <Label>Provider</Label>
+              <Select
+                value={action.provider}
+                onValueChange={(value) => updateAction(index, "provider", value)}
+              >
+                <SelectTrigger data-testid={`select-provider-${index}`}>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="NOVA">NOVA</SelectItem>
+                  <SelectItem value="LINKEDIN">LINKEDIN</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            {action.action === "SEND_MESSAGE" && (
+              <div>
+                <Label>Message</Label>
+                <Textarea
+                  value={action.message || ""}
+                  onChange={(e) => updateAction(index, "message", e.target.value)}
+                  placeholder="Enter your message..."
+                  rows={3}
+                  data-testid={`textarea-message-${index}`}
+                />
+              </div>
+            )}
           </div>
-        )}
+        ))}
       </div>
     );
   };

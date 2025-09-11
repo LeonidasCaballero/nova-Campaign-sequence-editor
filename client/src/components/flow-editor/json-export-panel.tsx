@@ -12,9 +12,13 @@ export default function JsonExportPanel({ nodes, edges, onMinimize }: JsonExport
   const { toast } = useToast();
 
   // Helper function to get connected nodes
+  const getNextStepIds = (nodeId: string) => {
+    return edges.filter(edge => edge.source === nodeId).map(edge => edge.target);
+  };
+
   const getNextStepId = (nodeId: string) => {
-    const outgoingEdge = edges.find(edge => edge.source === nodeId);
-    return outgoingEdge ? outgoingEdge.target : null;
+    const outgoingEdges = getNextStepIds(nodeId);
+    return outgoingEdges.length > 0 ? outgoingEdges[0] : null;
   };
 
   const flowData = {
@@ -23,7 +27,8 @@ export default function JsonExportPanel({ nodes, edges, onMinimize }: JsonExport
       type: node.type,
       data: node.data,
       position: node.position,
-      nextStepId: getNextStepId(node.id),
+      nextStepId: getNextStepId(node.id), // For backward compatibility 
+      nextStepIds: getNextStepIds(node.id), // All linked node IDs
     })),
     edges: edges.map(edge => ({
       id: edge.id,

@@ -102,9 +102,12 @@ export default function FlowEditor() {
     switch (type) {
       case "action":
         return {
-          action: "SEND_CONTACT_REQUEST",
-          provider: "LINKEDIN",
-          message: "",
+          actions: [
+            {
+              action: "SEND_CONTACT_REQUEST",
+              provider: "LINKEDIN",
+            },
+          ],
         };
       case "condition":
         return {};
