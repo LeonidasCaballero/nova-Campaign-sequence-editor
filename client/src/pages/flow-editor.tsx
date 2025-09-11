@@ -14,7 +14,7 @@ import "reactflow/dist/style.css";
 import Header from "@/components/flow-editor/header";
 import NodePalette from "@/components/flow-editor/node-palette";
 import PropertiesPanel from "@/components/flow-editor/properties-panel";
-import JsonExportPanel from "@/components/flow-editor/json-export-panel";
+// JsonExportPanel now integrated into NodePalette
 import ActionNode from "@/components/flow-editor/custom-nodes/action-node";
 import ConditionNode from "@/components/flow-editor/custom-nodes/condition-node";
 import ConditionCheckNode from "@/components/flow-editor/custom-nodes/condition-check-node";
@@ -154,7 +154,11 @@ export default function FlowEditor() {
       />
 
       <div className="flex flex-1 overflow-hidden">
-        <NodePalette />
+        <NodePalette 
+          nodes={nodes}
+          edges={edges}
+          showJsonExport={showJsonPanel}
+        />
 
         <div className="flex-1 relative" ref={reactFlowWrapper}>
           <ReactFlowProvider>
@@ -209,11 +213,7 @@ export default function FlowEditor() {
       </div>
 
       {showJsonPanel && (
-        <JsonExportPanel
-          nodes={nodes}
-          edges={edges}
-          onMinimize={() => setShowJsonPanel(false)}
-        />
+        {/* JSON export is now integrated into the sidebar */}
       )}
 
       {!showJsonPanel && (

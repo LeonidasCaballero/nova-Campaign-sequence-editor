@@ -1,14 +1,114 @@
-export default function NodePalette() {
+import { Node, Edge } from "reactflow";
+import { Button } from "@/components/ui/button";
+import { useToast } from "@/hooks/use-toast";
+
+interface NodePaletteProps {
+  nodes?: Node[];
+  edges?: Edge[];
+  showJsonExport?: boolean;
+}
+
+export default function NodePalette({ nodes = [], edges = [], showJsonExport = false }: NodePaletteProps) {
+  const { toast } = useToast();
+  
   const onDragStart = (event: React.DragEvent, nodeType: string) => {
     event.dataTransfer.setData("application/reactflow", nodeType);
     event.dataTransfer.effectAllowed = "move";
   };
 
-  return (
-    <aside className="w-64 bg-card border-r border-border p-4 overflow-y-auto">
-      <h2 className="text-lg font-semibold text-foreground mb-4">Node Library</h2>
+  // Get next step for a node
+  const getNextStepId = (nodeId: string) => {
+    const outgoingEdges = edges.filter(edge => edge.source === nodeId);
+    return outgoingEdges.length > 0 ? outgoingEdges[0].target : null;
+  };
 
-      <div className="space-y-4">
+  // JSON export logic that groups condition checks under parent conditions
+  const generateFlowData = () => {
+    const conditionMap = new Map();
+    const conditionCheckMap = new Map();
+    const actionNodes: any[] = [];
+
+    // First pass: collect all nodes by type
+    nodes.forEach(node => {
+      if (node.type === "condition") {
+        conditionMap.set(node.id, { ...node, checks: [] });
+      } else if (node.type === "condition_check") {
+        conditionCheckMap.set(node.id, node);
+      } else if (node.type === "action") {
+        let data = node.data as any;
+        // Handle backward compatibility with old format
+        if (data.actions && Array.isArray(data.actions)) {
+          data = data.actions[0] || { action: "SEND_CONTACT_REQUEST", provider: "LINKEDIN" };
+        }
+        
+        actionNodes.push({
+          id: node.id,
+          type: node.type,
+          action: data.action,
+          provider: data.provider,
+          ...(data.message && { message: data.message }),
+        });
+      }
+    });
+
+    // Second pass: associate condition checks with their parent conditions
+    edges.forEach(edge => {
+      const sourceNode = conditionMap.get(edge.source);
+      const targetNode = conditionCheckMap.get(edge.target);
+      
+      if (sourceNode && targetNode) {
+        const conditionCheckData = targetNode.data as any;
+        if (conditionCheckData.conditions) {
+          const childData = {
+            nextStepId: getNextStepId(edge.target),
+            checks: conditionCheckData.conditions.map((condition: any) => ({
+              condition: condition.condition,
+              value: condition.value,
+              ...(condition.timeInHours && {
+                conditionExtraValue: { timeInHours: condition.timeInHours }
+              })
+            }))
+          };
+          sourceNode.checks.push(childData);
+        }
+      }
+    });
+
+    // Build final condition nodes with child structure
+    const conditionNodes = Array.from(conditionMap.values()).map((conditionNode: any) => ({
+      id: conditionNode.id,
+      type: "CONDITION",
+      child: conditionNode.checks
+    }));
+
+    return {
+      nodes: [...actionNodes, ...conditionNodes]
+    };
+  };
+
+  const jsonString = showJsonExport ? JSON.stringify(generateFlowData(), null, 2) : "";
+
+  const copyToClipboard = () => {
+    navigator.clipboard.writeText(jsonString).then(() => {
+      toast({
+        title: "Success",
+        description: "JSON copied to clipboard",
+      });
+    }).catch(() => {
+      toast({
+        title: "Error",
+        description: "Failed to copy JSON",
+        variant: "destructive",
+      });
+    });
+  };
+
+  return (
+    <aside className="w-80 bg-card border-r border-border overflow-y-auto flex flex-col h-full">
+      <div className="p-4">
+        <h2 className="text-lg font-semibold text-foreground mb-4">Node Library</h2>
+
+        <div className="space-y-4">
         <div>
           <h3 className="text-sm font-medium text-muted-foreground mb-2 uppercase tracking-wide">
             Actions
@@ -74,7 +174,38 @@ export default function NodePalette() {
             </div>
           </div>
         </div>
+        </div>
       </div>
+
+      {showJsonExport && (
+        <div className="border-t border-border p-4 bg-muted/50 flex-1 min-h-0">
+          <div className="flex items-center justify-between mb-3">
+            <h3 className="font-semibold text-foreground">JSON Export</h3>
+            <Button
+              size="sm"
+              variant="ghost"
+              onClick={copyToClipboard}
+              title="Copy JSON"
+              data-testid="button-copy-json"
+            >
+              <i className="fas fa-copy text-muted-foreground text-sm"></i>
+            </Button>
+          </div>
+
+          <div className="bg-gray-900 rounded-md p-3 overflow-y-auto h-64">
+            <pre 
+              className="text-green-400 font-mono text-xs leading-relaxed"
+              data-testid="json-preview"
+            >
+              {jsonString}
+            </pre>
+          </div>
+
+          <div className="mt-2 text-xs text-muted-foreground">
+            Live preview updates as you modify the flow
+          </div>
+        </div>
+      )}
     </aside>
   );
 }
