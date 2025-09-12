@@ -10,12 +10,14 @@ function ActionNode({ data }: NodeProps<ActionNodeData>) {
         position={Position.Left}
         className="node-handle input"
         data-testid="handle-action-input"
+        id="input"
       />
       <Handle
         type="source"
         position={Position.Right}
         className="node-handle output"
         data-testid="handle-action-output"
+        id="output"
       />
       
       <div className="p-1.5">

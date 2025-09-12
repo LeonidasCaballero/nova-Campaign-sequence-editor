@@ -58,7 +58,6 @@ export default function FlowEditor() {
       }
 
       // Condition checks can connect to actions or conditions (no restriction)
-
       setEdges((eds) => addEdge(params, eds));
     },
     [nodes, setEdges]

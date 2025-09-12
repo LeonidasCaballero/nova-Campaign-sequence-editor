@@ -10,12 +10,14 @@ function ConditionNode({ data }: NodeProps<ConditionNodeData>) {
         position={Position.Left}
         className="node-handle input"
         data-testid="handle-condition-input"
+        id="input"
       />
       <Handle
         type="source"
         position={Position.Right}
         className="node-handle output"
         data-testid="handle-condition-output"
+        id="output"
       />
       
       <div className="p-1.5">

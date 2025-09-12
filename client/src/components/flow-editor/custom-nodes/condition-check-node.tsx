@@ -13,12 +13,14 @@ function ConditionCheckNode({ data }: NodeProps<ConditionCheckNodeData>) {
         position={Position.Left}
         className="node-handle input"
         data-testid="handle-condition-check-input"
+        id="input"
       />
       <Handle
         type="source"
         position={Position.Right}
         className="node-handle output"
         data-testid="handle-condition-check-output"
+        id="output"
       />
       
       <div className="p-1.5">
