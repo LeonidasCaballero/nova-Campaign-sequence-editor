@@ -194,12 +194,14 @@
 /* ReactFlow overrides with Nova styling */
 .react-flow__edge-path {
   stroke: hsl(174, 100%, 38%);
-  stroke-width: 2;
+  stroke-width: 1.5;
+  stroke-opacity: 0.6;
 }
 
 .react-flow__edge.selected .react-flow__edge-path {
   stroke: hsl(174, 100%, 32%);
-  stroke-width: 3;
+  stroke-width: 2;
+  stroke-opacity: 0.8;
 }
 
 .react-flow__node.selected {
