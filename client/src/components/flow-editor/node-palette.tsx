@@ -47,6 +47,7 @@ export default function NodePalette({ nodes = [], edges = [], showJsonExport = f
           action: data.action,
           provider: data.provider,
           ...(data.message && { message: data.message }),
+          ...(data.nextStepId && { nextStepId: data.nextStepId }),
         });
       }
     });
