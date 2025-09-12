@@ -161,8 +161,25 @@ export default function NodePalette({ nodes = [], edges = [], showJsonExport = f
     }
 
     try {
-      // SECURITY FIX: Only accept valid JSON, no arbitrary code execution
-      const importedData = JSON.parse(importJson);
+      let importedData;
+      
+      // First try strict JSON parsing
+      try {
+        importedData = JSON.parse(importJson);
+      } catch (jsonError) {
+        // If JSON parsing fails, try to convert JavaScript object notation to JSON
+        try {
+          // SAFE conversion of JavaScript object notation to JSON
+          // This replaces unquoted property names with quoted ones
+          const jsonString = importJson
+            .replace(/([{,]\s*)([a-zA-Z_$][a-zA-Z0-9_$]*)\s*:/g, '$1"$2":')  // Quote unquoted property names
+            .replace(/'/g, '"');  // Replace single quotes with double quotes
+          
+          importedData = JSON.parse(jsonString);
+        } catch (conversionError) {
+          throw new Error("Invalid JSON or JavaScript object format");
+        }
+      }
       
       if (!Array.isArray(importedData)) {
         throw new Error("Input must be an array of nodes");
