@@ -100,6 +100,7 @@ export default function NodePalette({ nodes = [], edges = [], showJsonExport = f
       .filter((node: any) => !connectedConditionCheckIds.has(node.id))
       .map((node: any) => {
         const conditionCheckData = node.data as any;
+        const nextStepId = getNextStepId(node.id);
         return {
           id: node.id,
           type: "CONDITION_CHECK",
@@ -109,7 +110,8 @@ export default function NodePalette({ nodes = [], edges = [], showJsonExport = f
             ...(condition.timeInHours && {
               conditionExtraValue: { timeInHours: condition.timeInHours }
             })
-          }))
+          })),
+          ...(nextStepId && { nextStepId })
         };
       });
 
@@ -273,6 +275,17 @@ export default function NodePalette({ nodes = [], edges = [], showJsonExport = f
           },
         };
         nodes.push(node);
+        
+        // Create edge if nextStepId exists for standalone condition check
+        if (item.nextStepId) {
+          edges.push({
+            id: `reactflow__edge-${item.id}output-${item.nextStepId}input`,
+            source: item.id,
+            sourceHandle: "output",
+            target: item.nextStepId,
+            targetHandle: "input",
+          });
+        }
       }
     });
     

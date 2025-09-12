@@ -1,0 +1,134 @@
+[
+    {
+      id: 'e699678d-22a4-4a0c-b488-60dd76f23079',
+      type: 'ACTION',
+      action: 'SEND_CONTACT_REQUEST',
+      provider: 'LINKEDIN',
+      nextStepId: '7a1b5d8b-1ca4-4812-8fc9-85cdddae545c',
+    },
+    {
+      id: 'dfd86957-2e96-4c9e-99a0-c38a998ac2ad',
+      type: 'ACTION',
+      action: 'SEND_MESSAGE',
+      provider: 'LINKEDIN',
+      data: {
+        message: 'Hello, how are you? I\'m writing to you for a very cool position.',
+      },
+      nextStepId: '88f1adcd-4ac2-408e-a44e-63a1cfd07c8a',
+    },
+    {
+      id: '81068c87-01d3-4a9e-add6-d6e4061d8fc3',
+      type: 'ACTION',
+      action: 'SEND_MESSAGE',
+      provider: 'LINKEDIN',
+      data: {
+        message: 'Hello again, how are you? I\'m writing to you for a very cool position. This is my last reminder.',
+      },
+    },
+    {
+      id: 'f6465512-77bc-4df4-a0d1-6729eeafdc39',
+      type: 'CONDITION',
+      child: [
+        {
+          nextStepId: null,
+          checks: [
+            {
+              condition: 'IS_NOVA',
+              value: true,
+            },
+          ],
+        },
+        {
+          nextStepId: '94f1ec0a-717c-4727-b45b-91bbccf5a586',
+          checks: [
+            {
+              condition: 'IS_NOVA',
+              value: false,
+            },
+          ],
+        },
+      ],
+    },
+    {
+      id: '94f1ec0a-717c-4727-b45b-91bbccf5a586',
+      type: 'CONDITION',
+      child: [
+        {
+          nextStepId: 'dfd86957-2e96-4c9e-99a0-c38a998ac2ad',
+          checks: [
+            {
+              condition: 'IS_LINKEDIN_CONTACT',
+              value: true,
+            },
+          ],
+        },
+        {
+          nextStepId: 'e699678d-22a4-4a0c-b488-60dd76f23079',
+          checks: [
+            {
+              condition: 'IS_LINKEDIN_CONTACT',
+              value: false,
+            },
+          ],
+        },
+      ],
+    },
+    {
+      id: '7a1b5d8b-1ca4-4812-8fc9-85cdddae545c',
+      type: 'CONDITION',
+      child: [
+        {
+          nextStepId: null,
+          checks: [
+            {
+              condition: 'HAS_REJECTED_CONTACT_LINKEDIN',
+              value: true,
+            },
+          ],
+        },
+        {
+          nextStepId: null,
+          checks: [
+            {
+              condition: 'IS_LINKEDIN_CONTACT',
+              value: false,
+            },
+            {
+              condition: 'HAS_TIME_PASSED',
+              value: true,
+              conditionExtraValue: {
+                timeInHours: 72,
+              },
+            },
+          ],
+        },
+        {
+          nextStepId: 'dfd86957-2e96-4c9e-99a0-c38a998ac2ad',
+          checks: [
+            {
+              condition: 'IS_LINKEDIN_CONTACT',
+              value: true,
+            },
+          ],
+        },
+      ],
+    },
+    {
+      id: '88f1adcd-4ac2-408e-a44e-63a1cfd07c8a',
+      type: 'CONDITION',
+      child: [
+        {
+          nextStepId: '81068c87-01d3-4a9e-add6-d6e4061d8fc3',
+          checks: [
+            {
+              condition: 'HAS_TIME_PASSED',
+              value: true,
+              conditionExtraValue: {
+                timeInHours: 72,
+              },
+            },
+          ],
+        },
+      ],
+    },
+  ]
