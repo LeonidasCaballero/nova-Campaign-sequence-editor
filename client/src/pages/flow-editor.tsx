@@ -278,10 +278,12 @@ export default function FlowEditor() {
               className="bg-slate-800 flow-canvas"
               data-testid="flow-canvas"
             >
-              <div className="absolute top-4 left-1/2 transform -translate-x-1/2 floating-panel rounded-lg px-4 py-2 z-20">
-                <div className="flex items-center space-x-4">
+              <div className="absolute top-4 left-1/2 transform -translate-x-1/2 bg-card border border-border rounded-lg px-3 py-1.5 shadow-sm z-20">
+                <div className="flex items-center space-x-3">
+                  <span className="text-xs text-muted-foreground font-medium">Controls</span>
+                  <div className="w-px h-4 bg-border"></div>
                   <button
-                    className="p-2 hover:bg-gray-100 rounded transition-colors"
+                    className="p-1.5 hover:bg-muted rounded transition-colors"
                     title="Delete Selected"
                     onClick={() => {
                       if (selectedNode) deleteSelectedNode();
@@ -290,16 +292,15 @@ export default function FlowEditor() {
                     disabled={!selectedNode && !selectedEdge}
                     data-testid="button-delete-selected"
                   >
-                    <i className="fas fa-trash text-muted-foreground"></i>
+                    <i className="fas fa-trash text-muted-foreground text-sm"></i>
                   </button>
-                  <div className="w-px h-6 bg-border"></div>
                   <button
-                    className="p-2 hover:bg-gray-100 rounded transition-colors"
+                    className="p-1.5 hover:bg-muted rounded transition-colors"
                     title="Fit View"
                     onClick={() => reactFlowInstance?.fitView()}
                     data-testid="button-fit-view"
                   >
-                    <i className="fas fa-expand-arrows-alt text-muted-foreground"></i>
+                    <i className="fas fa-expand-arrows-alt text-muted-foreground text-sm"></i>
                   </button>
                 </div>
               </div>
