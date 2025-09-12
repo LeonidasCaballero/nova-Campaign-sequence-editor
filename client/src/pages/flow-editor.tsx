@@ -36,6 +36,7 @@ export default function FlowEditor() {
   const [edges, setEdges, defaultOnEdgesChange] = useEdgesState(initialEdges);
   const [reactFlowInstance, setReactFlowInstance] = useState<ReactFlowInstance | null>(null);
   const [selectedNode, setSelectedNode] = useState<Node | null>(null);
+  const [selectedEdge, setSelectedEdge] = useState<Edge | null>(null);
   const [showJsonPanel, setShowJsonPanel] = useState(true);
 
   const onConnect = useCallback(
@@ -95,13 +96,17 @@ export default function FlowEditor() {
       changes.forEach((change) => {
         if (change.type === 'remove') {
           const edgeToRemove = edges.find(edge => edge.id === change.id);
+          console.log("Edge being removed:", edgeToRemove);
           if (edgeToRemove) {
             const sourceNode = nodes.find(n => n.id === edgeToRemove.source);
+            console.log("Source node of removed edge:", sourceNode);
             if (sourceNode && sourceNode.type === 'action') {
+              console.log("Removing nextStepId from action node:", sourceNode.id);
               setNodes((nds) =>
                 nds.map((node) => {
                   if (node.id === edgeToRemove.source) {
                     const { nextStepId, ...restData } = node.data;
+                    console.log("Updated node data (nextStepId removed):", restData);
                     return {
                       ...node,
                       data: restData
@@ -122,10 +127,17 @@ export default function FlowEditor() {
 
   const onNodeClick = useCallback((event: React.MouseEvent, node: Node) => {
     setSelectedNode(node);
+    setSelectedEdge(null);
+  }, []);
+
+  const onEdgeClick = useCallback((event: React.MouseEvent, edge: Edge) => {
+    setSelectedEdge(edge);
+    setSelectedNode(null);
   }, []);
 
   const onPaneClick = useCallback(() => {
     setSelectedNode(null);
+    setSelectedEdge(null);
   }, []);
 
   const onDragOver = useCallback((event: React.DragEvent) => {
@@ -209,6 +221,31 @@ export default function FlowEditor() {
     }
   }, [selectedNode, setNodes, setEdges]);
 
+  const deleteSelectedEdge = useCallback(() => {
+    if (selectedEdge) {
+      // Trigger the same logic as onEdgesChange but for manual deletion
+      const sourceNode = nodes.find(n => n.id === selectedEdge.source);
+      if (sourceNode && sourceNode.type === 'action') {
+        setNodes((nds) =>
+          nds.map((node) => {
+            if (node.id === selectedEdge.source) {
+              const { nextStepId, ...restData } = node.data;
+              console.log("Manually removing nextStepId from action node:", node.id);
+              return {
+                ...node,
+                data: restData
+              };
+            }
+            return node;
+          })
+        );
+      }
+      
+      setEdges((eds) => eds.filter((edge) => edge.id !== selectedEdge.id));
+      setSelectedEdge(null);
+    }
+  }, [selectedEdge, nodes, setNodes, setEdges]);
+
   return (
     <div className="h-screen flex flex-col bg-background">
       <Header
@@ -235,11 +272,14 @@ export default function FlowEditor() {
               onEdgesChange={onEdgesChange}
               onConnect={onConnect}
               onNodeClick={onNodeClick}
+              onEdgeClick={onEdgeClick}
               onPaneClick={onPaneClick}
               onDrop={onDrop}
               onDragOver={onDragOver}
               onInit={setReactFlowInstance}
               nodeTypes={nodeTypes}
+              deleteKeyCode="Delete"
+              multiSelectionKeyCode="Meta"
               fitView
               className="bg-slate-800 flow-canvas"
               data-testid="flow-canvas"
@@ -249,8 +289,11 @@ export default function FlowEditor() {
                   <button
                     className="p-2 hover:bg-gray-100 rounded transition-colors"
                     title="Delete Selected"
-                    onClick={deleteSelectedNode}
-                    disabled={!selectedNode}
+                    onClick={() => {
+                      if (selectedNode) deleteSelectedNode();
+                      if (selectedEdge) deleteSelectedEdge();
+                    }}
+                    disabled={!selectedNode && !selectedEdge}
                     data-testid="button-delete-selected"
                   >
                     <i className="fas fa-trash text-muted-foreground"></i>
