@@ -331,24 +331,46 @@ export default function FlowEditor() {
   }, [setNodes, setEdges, reactFlowInstance]);
 
   return (
-    <div className="h-screen flex flex-col bg-background">
-      <Header
-        nodes={nodes}
-        edges={edges}
-        deleteSelectedNode={deleteSelectedNode}
-        hasSelectedNode={!!selectedNode}
-      />
+    <div className="h-screen flex flex-col bg-gray-50">
+      {/* Nova Header */}
+      <div className="bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between shadow-sm">
+        <div className="flex items-center space-x-3">
+          <div className="w-8 h-8 bg-primary rounded flex items-center justify-center">
+            <div className="w-0 h-0 border-l-[6px] border-l-transparent border-r-[6px] border-r-transparent border-b-[8px] border-b-white"></div>
+          </div>
+          <div>
+            <h1 className="text-xl font-semibold text-gray-900">Nova Recruiter</h1>
+            <p className="text-sm text-gray-500">Campaign Sequence Builder</p>
+          </div>
+        </div>
+        <div className="flex items-center space-x-3">
+          {selectedNode && (
+            <button
+              onClick={deleteSelectedNode}
+              className="px-3 py-1.5 text-sm text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+              data-testid="button-delete-node"
+            >
+              Delete Node
+            </button>
+          )}
+          <div className="w-8 h-8 bg-primary rounded-full flex items-center justify-center text-white text-sm font-medium">
+            N
+          </div>
+        </div>
+      </div>
 
       <div className="flex flex-1 overflow-hidden">
-        <NodePalette 
-          nodes={nodes}
-          edges={edges}
-          showJsonExport={showJsonPanel}
-          firstNodeId={firstNodeId}
-          onImportFlow={handleImportFlow}
-        />
+        <div className="w-80 border-r border-gray-200 bg-white flex flex-col">
+          <NodePalette 
+            nodes={nodes}
+            edges={edges}
+            showJsonExport={showJsonPanel}
+            firstNodeId={firstNodeId}
+            onImportFlow={handleImportFlow}
+          />
+        </div>
 
-        <div className="flex-1 relative" ref={reactFlowWrapper}>
+        <div className="flex-1 relative bg-white" ref={reactFlowWrapper}>
           <ReactFlowProvider>
             <ReactFlow
               nodes={enhancedNodes}
@@ -367,7 +389,7 @@ export default function FlowEditor() {
               deleteKeyCode="Delete"
               multiSelectionKeyCode="Meta"
               fitView
-              className="bg-slate-800 flow-canvas"
+              className="bg-white flow-canvas nova-flow-editor"
               data-testid="flow-canvas"
             >
             </ReactFlow>

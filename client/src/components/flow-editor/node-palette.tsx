@@ -339,9 +339,9 @@ export default function NodePalette({ nodes = [], edges = [], showJsonExport = f
   };
 
   return (
-    <aside className="w-80 bg-card border-r border-border overflow-y-auto flex flex-col h-full">
-      <div className="p-4">
-        <h2 className="text-lg font-semibold text-foreground mb-4">Node Library</h2>
+    <aside className="flex-1 overflow-y-auto nova-sidebar">
+      <div className="p-6">
+        <h2 className="text-lg font-semibold text-gray-900 mb-4">Campaign Nodes</h2>
 
         <div className="space-y-4">
         <div>
