@@ -50,10 +50,12 @@ export default function NodePalette({ nodes = [], edges = [], showJsonExport = f
         actionNodes.push({
           id: node.id,
           type: "ACTION",
-          action: data.action,
-          provider: data.provider,
-          ...(data.message && { data: { message: data.message } }),
-          ...(data.nextStepId && { nextStepId: data.nextStepId }),
+          child: {
+            action: data.action,
+            provider: data.provider,
+            ...(data.message && { data: { message: data.message } }),
+            ...(data.nextStepId && { nextStepId: data.nextStepId }),
+          }
         });
       }
     });
@@ -260,26 +262,29 @@ export default function NodePalette({ nodes = [], edges = [], showJsonExport = f
       nodePositions.set(item.id, position);
       
       if (item.type === "ACTION") {
+        // Handle both old format (flat) and new format (with child property)
+        const actionData = item.child || item;
+        
         const node: Node = {
           id: item.id,
           type: "action",
           position,
           data: {
-            action: item.action,
-            provider: item.provider,
-            ...(item.data?.message && { message: item.data.message }),
-            ...(item.nextStepId && { nextStepId: item.nextStepId }),
+            action: actionData.action,
+            provider: actionData.provider,
+            ...(actionData.data?.message && { message: actionData.data.message }),
+            ...(actionData.nextStepId && { nextStepId: actionData.nextStepId }),
           },
         };
         nodes.push(node);
         
         // Create edge if nextStepId exists
-        if (item.nextStepId) {
+        if (actionData.nextStepId) {
           edges.push({
-            id: `reactflow__edge-${item.id}output-${item.nextStepId}input`,
+            id: `reactflow__edge-${item.id}output-${actionData.nextStepId}input`,
             source: item.id,
             sourceHandle: "output",
-            target: item.nextStepId,
+            target: actionData.nextStepId,
             targetHandle: "input",
           });
         }
