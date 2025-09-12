@@ -96,17 +96,13 @@ export default function FlowEditor() {
       changes.forEach((change) => {
         if (change.type === 'remove') {
           const edgeToRemove = edges.find(edge => edge.id === change.id);
-          console.log("Edge being removed:", edgeToRemove);
           if (edgeToRemove) {
             const sourceNode = nodes.find(n => n.id === edgeToRemove.source);
-            console.log("Source node of removed edge:", sourceNode);
             if (sourceNode && sourceNode.type === 'action') {
-              console.log("Removing nextStepId from action node:", sourceNode.id);
               setNodes((nds) =>
                 nds.map((node) => {
                   if (node.id === edgeToRemove.source) {
                     const { nextStepId, ...restData } = node.data;
-                    console.log("Updated node data (nextStepId removed):", restData);
                     return {
                       ...node,
                       data: restData
@@ -230,7 +226,6 @@ export default function FlowEditor() {
           nds.map((node) => {
             if (node.id === selectedEdge.source) {
               const { nextStepId, ...restData } = node.data;
-              console.log("Manually removing nextStepId from action node:", node.id);
               return {
                 ...node,
                 data: restData
@@ -251,7 +246,6 @@ export default function FlowEditor() {
       <Header
         nodes={nodes}
         edges={edges}
-        onExportJson={() => {}}
         deleteSelectedNode={deleteSelectedNode}
         hasSelectedNode={!!selectedNode}
       />
