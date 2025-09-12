@@ -1,16 +1,19 @@
 import { Node, Edge } from "reactflow";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
-import { Copy } from "lucide-react";
+import { Copy, Upload } from "lucide-react";
+import { useRef } from "react";
 
 interface NodePaletteProps {
   nodes?: Node[];
   edges?: Edge[];
   showJsonExport?: boolean;
+  onImportFlow?: (nodes: Node[], edges: Edge[]) => void;
 }
 
-export default function NodePalette({ nodes = [], edges = [], showJsonExport = false }: NodePaletteProps) {
+export default function NodePalette({ nodes = [], edges = [], showJsonExport = false, onImportFlow }: NodePaletteProps) {
   const { toast } = useToast();
+  const fileInputRef = useRef<HTMLInputElement>(null);
   
   const onDragStart = (event: React.DragEvent, nodeType: string) => {
     event.dataTransfer.setData("application/reactflow", nodeType);
@@ -132,6 +135,150 @@ export default function NodePalette({ nodes = [], edges = [], showJsonExport = f
     });
   };
 
+  const handleImportClick = () => {
+    fileInputRef.current?.click();
+  };
+
+  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      try {
+        const jsonContent = e.target?.result as string;
+        const importedData = JSON.parse(jsonContent);
+        
+        if (!Array.isArray(importedData)) {
+          throw new Error("JSON must be an array of nodes");
+        }
+
+        const { nodes: importedNodes, edges: importedEdges } = convertJsonToFlow(importedData);
+        
+        if (onImportFlow) {
+          onImportFlow(importedNodes, importedEdges);
+          toast({
+            title: "Success",
+            description: `Imported ${importedNodes.length} nodes successfully`,
+          });
+        }
+      } catch (error) {
+        toast({
+          title: "Import Failed",
+          description: error instanceof Error ? error.message : "Invalid JSON format",
+          variant: "destructive",
+        });
+      }
+    };
+    reader.readAsText(file);
+    
+    // Reset the input value so the same file can be selected again
+    event.target.value = '';
+  };
+
+  const convertJsonToFlow = (jsonData: any[]) => {
+    const nodes: Node[] = [];
+    const edges: Edge[] = [];
+    const nodePositions = new Map<string, { x: number; y: number }>();
+    
+    // Position nodes in a grid layout
+    let x = 100;
+    let y = 100;
+    const spacing = 200;
+    
+    jsonData.forEach((item, index) => {
+      const position = { x: x + (index % 3) * spacing, y: y + Math.floor(index / 3) * spacing };
+      nodePositions.set(item.id, position);
+      
+      if (item.type === "ACTION") {
+        const node: Node = {
+          id: item.id,
+          type: "action",
+          position,
+          data: {
+            action: item.action,
+            provider: item.provider,
+            ...(item.data?.message && { message: item.data.message }),
+            ...(item.nextStepId && { nextStepId: item.nextStepId }),
+          },
+        };
+        nodes.push(node);
+        
+        // Create edge if nextStepId exists
+        if (item.nextStepId) {
+          edges.push({
+            id: `reactflow__edge-${item.id}output-${item.nextStepId}input`,
+            source: item.id,
+            sourceHandle: "output",
+            target: item.nextStepId,
+            targetHandle: "input",
+          });
+        }
+      } else if (item.type === "CONDITION") {
+        const node: Node = {
+          id: item.id,
+          type: "condition",
+          position,
+          data: {
+            child: item.child || [],
+          },
+        };
+        nodes.push(node);
+        
+        // Create condition check nodes and edges
+        (item.child || []).forEach((childData: any, childIndex: number) => {
+          const checkNodeId = `${item.id}_check_${childIndex}`;
+          const checkPosition = { 
+            x: position.x + spacing, 
+            y: position.y + (childIndex * 100) 
+          };
+          
+          const checkNode: Node = {
+            id: checkNodeId,
+            type: "condition_check",
+            position: checkPosition,
+            data: {
+              conditions: childData.checks || [],
+            },
+          };
+          nodes.push(checkNode);
+          
+          // Edge from condition to condition check
+          edges.push({
+            id: `reactflow__edge-${item.id}output-${checkNodeId}input`,
+            source: item.id,
+            sourceHandle: "output",
+            target: checkNodeId,
+            targetHandle: "input",
+          });
+          
+          // Edge from condition check to next step
+          if (childData.nextStepId) {
+            edges.push({
+              id: `reactflow__edge-${checkNodeId}output-${childData.nextStepId}input`,
+              source: checkNodeId,
+              sourceHandle: "output",
+              target: childData.nextStepId,
+              targetHandle: "input",
+            });
+          }
+        });
+      } else if (item.type === "CONDITION_CHECK") {
+        const node: Node = {
+          id: item.id,
+          type: "condition_check",
+          position,
+          data: {
+            conditions: item.conditions || [],
+          },
+        };
+        nodes.push(node);
+      }
+    });
+    
+    return { nodes, edges };
+  };
+
   return (
     <aside className="w-80 bg-card border-r border-border overflow-y-auto flex flex-col h-full">
       <div className="p-4">
@@ -210,16 +357,36 @@ export default function NodePalette({ nodes = [], edges = [], showJsonExport = f
         <div className="border-t border-border p-4 bg-muted/50 flex-1 min-h-0">
           <div className="flex items-center justify-between mb-3">
             <h3 className="font-semibold text-foreground">JSON Export</h3>
-            <Button
-              size="sm"
-              variant="ghost"
-              onClick={copyToClipboard}
-              title="Copy JSON to clipboard"
-              data-testid="button-copy-json"
-            >
-              <Copy className="h-4 w-4 text-muted-foreground" />
-            </Button>
+            <div className="flex gap-2">
+              <Button
+                size="sm"
+                variant="ghost"
+                onClick={handleImportClick}
+                title="Import JSON flow"
+                data-testid="button-import-json"
+              >
+                <Upload className="h-4 w-4 text-muted-foreground" />
+              </Button>
+              <Button
+                size="sm"
+                variant="ghost"
+                onClick={copyToClipboard}
+                title="Copy JSON to clipboard"
+                data-testid="button-copy-json"
+              >
+                <Copy className="h-4 w-4 text-muted-foreground" />
+              </Button>
+            </div>
           </div>
+          
+          <input
+            type="file"
+            ref={fileInputRef}
+            onChange={handleFileChange}
+            accept=".json"
+            style={{ display: 'none' }}
+            data-testid="file-input-json"
+          />
 
           <div className="bg-gray-900 rounded-md p-3 overflow-y-auto h-64">
             <pre 

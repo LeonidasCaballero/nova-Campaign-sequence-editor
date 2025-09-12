@@ -241,6 +241,18 @@ export default function FlowEditor() {
     }
   }, [selectedEdge, nodes, setNodes, setEdges]);
 
+  const handleImportFlow = useCallback((importedNodes: Node[], importedEdges: Edge[]) => {
+    setNodes(importedNodes);
+    setEdges(importedEdges);
+    setSelectedNode(null);
+    setSelectedEdge(null);
+    
+    // Fit view to show all imported nodes
+    setTimeout(() => {
+      reactFlowInstance?.fitView();
+    }, 100);
+  }, [setNodes, setEdges, reactFlowInstance]);
+
   return (
     <div className="h-screen flex flex-col bg-background">
       <Header
@@ -255,6 +267,7 @@ export default function FlowEditor() {
           nodes={nodes}
           edges={edges}
           showJsonExport={showJsonPanel}
+          onImportFlow={handleImportFlow}
         />
 
         <div className="flex-1 relative" ref={reactFlowWrapper}>
