@@ -57,7 +57,13 @@ export default function FlowEditor() {
         return; // Not allowed
       }
 
-      // Condition checks can connect to actions or conditions (no restriction)
+      // Condition checks can ONLY connect to actions or conditions
+      if (sourceNode.type === "condition_check" && 
+          targetNode.type !== "action" && 
+          targetNode.type !== "condition") {
+        return; // Not allowed
+      }
+      
       setEdges((eds) => addEdge(params, eds));
     },
     [nodes, setEdges]

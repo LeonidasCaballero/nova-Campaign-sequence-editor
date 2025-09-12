@@ -103,7 +103,13 @@ export default function NodePalette({ nodes = [], edges = [], showJsonExport = f
       });
 
     return {
-      nodes: [...actionNodes, ...conditionNodes, ...standaloneConditionCheckNodes]
+      nodes: [...actionNodes, ...conditionNodes, ...standaloneConditionCheckNodes],
+      edges: edges.map(edge => ({
+        source: edge.source,
+        target: edge.target,
+        sourceHandle: edge.sourceHandle,
+        targetHandle: edge.targetHandle
+      }))
     };
   };
 
