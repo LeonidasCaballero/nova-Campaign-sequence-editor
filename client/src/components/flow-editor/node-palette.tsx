@@ -1,8 +1,8 @@
 import { Node, Edge } from "reactflow";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
-import { Copy, Upload } from "lucide-react";
-import { useRef } from "react";
+import { Copy, Download } from "lucide-react";
+import { useState } from "react";
 
 interface NodePaletteProps {
   nodes?: Node[];
@@ -13,7 +13,7 @@ interface NodePaletteProps {
 
 export default function NodePalette({ nodes = [], edges = [], showJsonExport = false, onImportFlow }: NodePaletteProps) {
   const { toast } = useToast();
-  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [importJson, setImportJson] = useState("");
   
   const onDragStart = (event: React.DragEvent, nodeType: string) => {
     event.dataTransfer.setData("application/reactflow", nodeType);
@@ -137,45 +137,40 @@ export default function NodePalette({ nodes = [], edges = [], showJsonExport = f
     });
   };
 
-  const handleImportClick = () => {
-    fileInputRef.current?.click();
-  };
+  const handleImportJson = () => {
+    if (!importJson.trim()) {
+      toast({
+        title: "No JSON provided",
+        description: "Please paste JSON content to import",
+        variant: "destructive",
+      });
+      return;
+    }
 
-  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (!file) return;
-
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      try {
-        const jsonContent = e.target?.result as string;
-        const importedData = JSON.parse(jsonContent);
-        
-        if (!Array.isArray(importedData)) {
-          throw new Error("JSON must be an array of nodes");
-        }
-
-        const { nodes: importedNodes, edges: importedEdges } = convertJsonToFlow(importedData);
-        
-        if (onImportFlow) {
-          onImportFlow(importedNodes, importedEdges);
-          toast({
-            title: "Success",
-            description: `Imported ${importedNodes.length} nodes successfully`,
-          });
-        }
-      } catch (error) {
-        toast({
-          title: "Import Failed",
-          description: error instanceof Error ? error.message : "Invalid JSON format",
-          variant: "destructive",
-        });
+    try {
+      const importedData = JSON.parse(importJson);
+      
+      if (!Array.isArray(importedData)) {
+        throw new Error("JSON must be an array of nodes");
       }
-    };
-    reader.readAsText(file);
-    
-    // Reset the input value so the same file can be selected again
-    event.target.value = '';
+
+      const { nodes: importedNodes, edges: importedEdges } = convertJsonToFlow(importedData);
+      
+      if (onImportFlow) {
+        onImportFlow(importedNodes, importedEdges);
+        toast({
+          title: "Success",
+          description: `Imported ${importedNodes.length} nodes successfully`,
+        });
+        setImportJson(""); // Clear the textarea after successful import
+      }
+    } catch (error) {
+      toast({
+        title: "Import Failed",
+        description: error instanceof Error ? error.message : "Invalid JSON format",
+        variant: "destructive",
+      });
+    }
   };
 
   const convertJsonToFlow = (jsonData: any[]) => {
@@ -370,36 +365,16 @@ export default function NodePalette({ nodes = [], edges = [], showJsonExport = f
         <div className="border-t border-border p-4 bg-muted/50 flex-1 min-h-0">
           <div className="flex items-center justify-between mb-3">
             <h3 className="font-semibold text-foreground">JSON Export</h3>
-            <div className="flex gap-2">
-              <Button
-                size="sm"
-                variant="ghost"
-                onClick={handleImportClick}
-                title="Import JSON flow"
-                data-testid="button-import-json"
-              >
-                <Upload className="h-4 w-4 text-muted-foreground" />
-              </Button>
-              <Button
-                size="sm"
-                variant="ghost"
-                onClick={copyToClipboard}
-                title="Copy JSON to clipboard"
-                data-testid="button-copy-json"
-              >
-                <Copy className="h-4 w-4 text-muted-foreground" />
-              </Button>
-            </div>
+            <Button
+              size="sm"
+              variant="ghost"
+              onClick={copyToClipboard}
+              title="Copy JSON to clipboard"
+              data-testid="button-copy-json"
+            >
+              <Copy className="h-4 w-4 text-muted-foreground" />
+            </Button>
           </div>
-          
-          <input
-            type="file"
-            ref={fileInputRef}
-            onChange={handleFileChange}
-            accept=".json"
-            style={{ display: 'none' }}
-            data-testid="file-input-json"
-          />
 
           <div className="bg-gray-900 rounded-md p-3 overflow-y-auto h-64">
             <pre 
@@ -410,8 +385,26 @@ export default function NodePalette({ nodes = [], edges = [], showJsonExport = f
             </pre>
           </div>
 
-          <div className="mt-2 text-xs text-muted-foreground">
-            Live preview updates as you modify the flow
+          <div className="mt-4">
+            <div className="flex items-center justify-between mb-2">
+              <h4 className="font-medium text-foreground">Import JSON</h4>
+              <Button
+                size="sm"
+                onClick={handleImportJson}
+                disabled={!importJson.trim()}
+                data-testid="button-import-json"
+              >
+                <Download className="h-4 w-4 mr-2" />
+                Import
+              </Button>
+            </div>
+            <textarea
+              value={importJson}
+              onChange={(e) => setImportJson(e.target.value)}
+              placeholder="Paste your JSON here..."
+              className="w-full h-32 p-3 text-xs font-mono bg-gray-900 text-green-400 rounded-md border border-border resize-none"
+              data-testid="textarea-import-json"
+            />
           </div>
         </div>
       )}
