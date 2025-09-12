@@ -193,13 +193,17 @@ export default function NodePalette({ nodes = [], edges = [], showJsonExport = f
     const edges: Edge[] = [];
     const nodePositions = new Map<string, { x: number; y: number }>();
     
-    // Position nodes in a grid layout
-    let x = 100;
-    let y = 100;
-    const spacing = 200;
+    // Create clean vertical layout following JSON order
+    const startX = 100;
+    const startY = 100;
+    const verticalSpacing = 250; // More space between nodes vertically
+    const horizontalSpacing = 350; // Space for condition checks to the right
     
     jsonData.forEach((item, index) => {
-      const position = { x: x + (index % 3) * spacing, y: y + Math.floor(index / 3) * spacing };
+      const position = { 
+        x: startX, 
+        y: startY + (index * verticalSpacing) 
+      };
       nodePositions.set(item.id, position);
       
       if (item.type === "ACTION") {
@@ -241,8 +245,8 @@ export default function NodePalette({ nodes = [], edges = [], showJsonExport = f
         (item.child || []).forEach((childData: any, childIndex: number) => {
           const checkNodeId = `${item.id}_check_${childIndex}`;
           const checkPosition = { 
-            x: position.x + spacing, 
-            y: position.y + (childIndex * 100) 
+            x: position.x + horizontalSpacing, 
+            y: position.y + (childIndex * 120) // Slightly more vertical space between condition checks
           };
           
           const checkNode: Node = {
