@@ -286,7 +286,13 @@ export default function NodePalette({ nodes = [], edges = [], showJsonExport = f
             type: "condition_check",
             position: checkPosition,
             data: {
-              conditions: childData.checks || [],
+              conditions: (childData.checks || []).map((check: any) => ({
+                condition: check.condition,
+                value: check.value,
+                ...(check.conditionExtraValue && { 
+                  timeInHours: check.conditionExtraValue.timeInHours 
+                })
+              })),
             },
           };
           nodes.push(checkNode);
@@ -317,7 +323,13 @@ export default function NodePalette({ nodes = [], edges = [], showJsonExport = f
           type: "condition_check",
           position,
           data: {
-            conditions: item.conditions || [],
+            conditions: (item.conditions || []).map((check: any) => ({
+              condition: check.condition,
+              value: check.value,
+              ...(check.conditionExtraValue && { 
+                timeInHours: check.conditionExtraValue.timeInHours 
+              })
+            })),
           },
         };
         nodes.push(node);
