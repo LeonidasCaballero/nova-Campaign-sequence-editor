@@ -128,7 +128,16 @@ export default function NodePalette({ nodes = [], edges = [], showJsonExport = f
       }
     }
     
-    return allNodes;
+    // Collect position data for all nodes
+    const positions: { [key: string]: { x: number; y: number } } = {};
+    nodes.forEach(node => {
+      positions[node.id] = { x: node.position.x, y: node.position.y };
+    });
+    
+    return {
+      nodes: allNodes,
+      positions: positions
+    };
   };
 
   const flowData = generateFlowData();
@@ -181,21 +190,32 @@ export default function NodePalette({ nodes = [], edges = [], showJsonExport = f
         }
       }
       
-      if (!Array.isArray(importedData)) {
-        throw new Error("Input must be an array of nodes");
+      // Handle both old format (array) and new format (object with nodes and positions)
+      let nodeData: any[];
+      let positionData: { [key: string]: { x: number; y: number } } = {};
+      
+      if (Array.isArray(importedData)) {
+        // Old format - just an array of nodes
+        nodeData = importedData;
+      } else if (typeof importedData === 'object' && importedData.nodes && Array.isArray(importedData.nodes)) {
+        // New format - object with nodes and positions
+        nodeData = importedData.nodes;
+        positionData = importedData.positions || {};
+      } else {
+        throw new Error("Input must be an array of nodes or an object with 'nodes' property");
       }
 
-      if (importedData.length === 0) {
+      if (nodeData.length === 0) {
         throw new Error("Input array cannot be empty");
       }
 
       // Validate first node type - must be ACTION or CONDITION
-      const firstItem = importedData[0];
+      const firstItem = nodeData[0];
       if (!firstItem.type || (firstItem.type !== "ACTION" && firstItem.type !== "CONDITION")) {
         throw new Error("First node must be of type ACTION or CONDITION");
       }
 
-      const { nodes: importedNodes, edges: importedEdges, firstNodeId: importedFirstNodeId } = convertJsonToFlow(importedData);
+      const { nodes: importedNodes, edges: importedEdges, firstNodeId: importedFirstNodeId } = convertJsonToFlow(nodeData, positionData);
       
       // Remove any edges that target the first node to enforce "no inputs to first node" rule
       const filteredEdges = importedEdges.filter(edge => edge.target !== importedFirstNodeId);
@@ -217,12 +237,12 @@ export default function NodePalette({ nodes = [], edges = [], showJsonExport = f
     }
   };
 
-  const convertJsonToFlow = (jsonData: any[]) => {
+  const convertJsonToFlow = (jsonData: any[], savedPositions: { [key: string]: { x: number; y: number } } = {}) => {
     const nodes: Node[] = [];
     const edges: Edge[] = [];
     const nodePositions = new Map<string, { x: number; y: number }>();
     
-    // First node (first item in array) is positioned at the top
+    // Default positioning for nodes without saved positions
     const startX = 100;
     const startY = 50; // Start higher for first node
     const verticalSpacing = 250; // More space between nodes vertically
@@ -232,7 +252,8 @@ export default function NodePalette({ nodes = [], edges = [], showJsonExport = f
     const firstNodeId = jsonData.length > 0 ? jsonData[0].id : null;
     
     jsonData.forEach((item, index) => {
-      const position = { 
+      // Use saved position if available, otherwise use default positioning
+      const position = savedPositions[item.id] || { 
         x: startX, 
         y: startY + (index * verticalSpacing) 
       };
@@ -276,7 +297,7 @@ export default function NodePalette({ nodes = [], edges = [], showJsonExport = f
         // Create condition check nodes and edges
         (item.child || []).forEach((childData: any, childIndex: number) => {
           const checkNodeId = `${item.id}_check_${childIndex}`;
-          const checkPosition = { 
+          const checkPosition = savedPositions[checkNodeId] || { 
             x: position.x + horizontalSpacing, 
             y: position.y + (childIndex * 120) // Slightly more vertical space between condition checks
           };
