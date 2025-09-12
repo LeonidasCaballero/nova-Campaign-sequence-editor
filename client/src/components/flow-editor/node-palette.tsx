@@ -46,7 +46,7 @@ export default function NodePalette({ nodes = [], edges = [], showJsonExport = f
           type: node.type,
           action: data.action,
           provider: data.provider,
-          ...(data.message && { message: data.message }),
+          ...(data.message && { data: { message: data.message } }),
           ...(data.nextStepId && { nextStepId: data.nextStepId }),
         });
       }
@@ -99,7 +99,13 @@ export default function NodePalette({ nodes = [], edges = [], showJsonExport = f
         return {
           id: node.id,
           type: "CONDITION_CHECK",
-          conditions: conditionCheckData.conditions || []
+          conditions: (conditionCheckData.conditions || []).map((condition: any) => ({
+            condition: condition.condition,
+            value: condition.value,
+            ...(condition.timeInHours && {
+              conditionExtraValue: { timeInHours: condition.timeInHours }
+            })
+          }))
         };
       });
 
