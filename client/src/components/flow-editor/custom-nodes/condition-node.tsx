@@ -2,9 +2,13 @@ import { memo } from "react";
 import { Handle, Position, NodeProps } from "reactflow";
 import { ConditionNodeData } from "@shared/schema";
 
-function ConditionNode({ data }: NodeProps<ConditionNodeData>) {
+interface ConditionNodeProps extends NodeProps<ConditionNodeData> {
+  data: ConditionNodeData & { isFirstNode?: boolean };
+}
+
+function ConditionNode({ data }: ConditionNodeProps) {
   return (
-    <div className="bg-white rounded-lg shadow-lg border border-gray-200 node-condition min-w-[80px]">
+    <div className={`bg-white rounded-lg shadow-lg border border-gray-200 node-condition min-w-[80px] ${data.isFirstNode ? 'node-first' : ''}`} data-testid={`node-condition${data.isFirstNode ? '-first' : ''}`}>
       <Handle
         type="target"
         position={Position.Left}

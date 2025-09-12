@@ -19,6 +19,7 @@ import PropertiesPanel from "@/components/flow-editor/properties-panel";
 import ActionNode from "@/components/flow-editor/custom-nodes/action-node";
 import ConditionNode from "@/components/flow-editor/custom-nodes/condition-node";
 import ConditionCheckNode from "@/components/flow-editor/custom-nodes/condition-check-node";
+import { useToast } from "@/hooks/use-toast";
 import { v4 as uuidv4 } from 'uuid';
 
 const nodeTypes = {
@@ -38,6 +39,18 @@ export default function FlowEditor() {
   const [selectedNode, setSelectedNode] = useState<Node | null>(null);
   const [selectedEdge, setSelectedEdge] = useState<Edge | null>(null);
   const [showJsonPanel, setShowJsonPanel] = useState(true);
+  const [firstNodeId, setFirstNodeId] = useState<string | null>(null);
+  const [contextMenu, setContextMenu] = useState<{ x: number; y: number; nodeId: string } | null>(null);
+  const { toast } = useToast();
+
+  // Enhanced nodes with first node information (moved after firstNodeId declaration)
+  const enhancedNodes = nodes.map(node => ({
+    ...node,
+    data: {
+      ...node.data,
+      isFirstNode: node.id === firstNodeId
+    }
+  }));
 
   const onConnect = useCallback(
     (params: Connection) => {
@@ -48,6 +61,16 @@ export default function FlowEditor() {
       const targetNode = nodes.find((n) => n.id === params.target);
 
       if (!sourceNode || !targetNode) return;
+
+      // Prevent connections TO the first node
+      if (targetNode.id === firstNodeId) {
+        toast({
+          title: "Connection not allowed",
+          description: "Cannot connect to the first node. First nodes can only have outputs.",
+          variant: "destructive",
+        });
+        return;
+      }
 
       // Actions can ONLY connect to conditions
       if (sourceNode.type === "action" && targetNode.type !== "condition") {
@@ -87,7 +110,7 @@ export default function FlowEditor() {
         );
       }
     },
-    [nodes, setEdges, setNodes]
+    [nodes, setEdges, setNodes, firstNodeId, toast]
   );
 
   const onEdgesChange = useCallback(
@@ -124,6 +147,16 @@ export default function FlowEditor() {
   const onNodeClick = useCallback((event: React.MouseEvent, node: Node) => {
     setSelectedNode(node);
     setSelectedEdge(null);
+    setContextMenu(null); // Close context menu when clicking elsewhere
+  }, []);
+
+  const onNodeContextMenu = useCallback((event: React.MouseEvent, node: Node) => {
+    event.preventDefault();
+    setContextMenu({
+      x: event.clientX,
+      y: event.clientY,
+      nodeId: node.id,
+    });
   }, []);
 
   const onEdgeClick = useCallback((event: React.MouseEvent, edge: Edge) => {
@@ -134,6 +167,7 @@ export default function FlowEditor() {
   const onPaneClick = useCallback(() => {
     setSelectedNode(null);
     setSelectedEdge(null);
+    setContextMenu(null); // Close context menu when clicking elsewhere
   }, []);
 
   const onDragOver = useCallback((event: React.DragEvent) => {
@@ -209,13 +243,17 @@ export default function FlowEditor() {
 
   const deleteSelectedNode = useCallback(() => {
     if (selectedNode) {
+      // Clear first node if deleting the first node
+      if (selectedNode.id === firstNodeId) {
+        setFirstNodeId(null);
+      }
       setNodes((nds) => nds.filter((node) => node.id !== selectedNode.id));
       setEdges((eds) =>
         eds.filter((edge) => edge.source !== selectedNode.id && edge.target !== selectedNode.id)
       );
       setSelectedNode(null);
     }
-  }, [selectedNode, setNodes, setEdges]);
+  }, [selectedNode, setNodes, setEdges, firstNodeId]);
 
   const deleteSelectedEdge = useCallback(() => {
     if (selectedEdge) {
@@ -241,9 +279,48 @@ export default function FlowEditor() {
     }
   }, [selectedEdge, nodes, setNodes, setEdges]);
 
-  const handleImportFlow = useCallback((importedNodes: Node[], importedEdges: Edge[]) => {
+  // First node management functions
+  const isNodeEligibleForFirst = useCallback((node: Node) => {
+    // Only actions and conditions can be first nodes, not condition checks
+    if (node.type === "condition_check") return false;
+    
+    // Node must not have any incoming connections
+    const hasIncomingConnections = edges.some(edge => edge.target === node.id);
+    return !hasIncomingConnections;
+  }, [edges]);
+
+  const setNodeAsFirst = useCallback((nodeId: string) => {
+    const node = nodes.find(n => n.id === nodeId);
+    if (!node) return;
+
+    if (!isNodeEligibleForFirst(node)) {
+      toast({
+        title: "Cannot set as first node",
+        description: "Only action or condition nodes without inputs can be set as first nodes.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setFirstNodeId(nodeId);
+    toast({
+      title: "First node set",
+      description: `${node.type === "action" ? "Action" : "Condition"} node is now the first node.`,
+    });
+  }, [nodes, isNodeEligibleForFirst, toast]);
+
+  const clearFirstNode = useCallback(() => {
+    setFirstNodeId(null);
+    toast({
+      title: "First node cleared",
+      description: "No node is set as the first node.",
+    });
+  }, [toast]);
+
+  const handleImportFlow = useCallback((importedNodes: Node[], importedEdges: Edge[], importedFirstNodeId?: string) => {
     setNodes(importedNodes);
     setEdges(importedEdges);
+    setFirstNodeId(importedFirstNodeId || null);
     setSelectedNode(null);
     setSelectedEdge(null);
     
@@ -267,18 +344,20 @@ export default function FlowEditor() {
           nodes={nodes}
           edges={edges}
           showJsonExport={showJsonPanel}
+          firstNodeId={firstNodeId}
           onImportFlow={handleImportFlow}
         />
 
         <div className="flex-1 relative" ref={reactFlowWrapper}>
           <ReactFlowProvider>
             <ReactFlow
-              nodes={nodes}
+              nodes={enhancedNodes}
               edges={edges}
               onNodesChange={onNodesChange}
               onEdgesChange={onEdgesChange}
               onConnect={onConnect}
               onNodeClick={onNodeClick}
+              onNodeContextMenu={onNodeContextMenu}
               onEdgeClick={onEdgeClick}
               onPaneClick={onPaneClick}
               onDrop={onDrop}
@@ -300,9 +379,62 @@ export default function FlowEditor() {
           updateNodeData={updateNodeData}
           nodes={nodes}
           edges={edges}
+          firstNodeId={firstNodeId}
         />
       </div>
 
+      {/* Context Menu */}
+      {contextMenu && (
+        <div
+          className="fixed bg-white border border-gray-200 rounded-lg shadow-lg z-50 py-1 min-w-[160px]"
+          style={{ left: contextMenu.x, top: contextMenu.y }}
+          data-testid="context-menu"
+        >
+          {(() => {
+            const node = nodes.find(n => n.id === contextMenu.nodeId);
+            const isEligible = node && isNodeEligibleForFirst(node);
+            const isCurrentlyFirst = contextMenu.nodeId === firstNodeId;
+            
+            return (
+              <>
+                {isCurrentlyFirst ? (
+                  <button
+                    className="w-full px-3 py-2 text-left text-sm hover:bg-gray-100 text-red-600"
+                    onClick={() => {
+                      clearFirstNode();
+                      setContextMenu(null);
+                    }}
+                    data-testid="button-clear-first-node"
+                  >
+                    Remove as First Node
+                  </button>
+                ) : isEligible ? (
+                  <button
+                    className="w-full px-3 py-2 text-left text-sm hover:bg-gray-100 text-blue-600"
+                    onClick={() => {
+                      setNodeAsFirst(contextMenu.nodeId);
+                      setContextMenu(null);
+                    }}
+                    data-testid="button-set-first-node"
+                  >
+                    Set as First Node
+                  </button>
+                ) : (
+                  <div className="px-3 py-2 text-sm text-gray-400">
+                    Cannot set as first node
+                    <div className="text-xs text-gray-500 mt-1">
+                      {node?.type === "condition_check" 
+                        ? "Condition checks cannot be first nodes"
+                        : "Node has incoming connections"}
+                    </div>
+                  </div>
+                )}
+              </>
+            );
+          })()} 
+        </div>
+      )}
+      
       {/* JSON export is now integrated into the sidebar */}
     </div>
   );

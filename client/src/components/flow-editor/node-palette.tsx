@@ -8,10 +8,11 @@ interface NodePaletteProps {
   nodes?: Node[];
   edges?: Edge[];
   showJsonExport?: boolean;
-  onImportFlow?: (nodes: Node[], edges: Edge[]) => void;
+  firstNodeId?: string | null;
+  onImportFlow?: (nodes: Node[], edges: Edge[], firstNodeId?: string) => void;
 }
 
-export default function NodePalette({ nodes = [], edges = [], showJsonExport = false, onImportFlow }: NodePaletteProps) {
+export default function NodePalette({ nodes = [], edges = [], showJsonExport = false, firstNodeId, onImportFlow }: NodePaletteProps) {
   const { toast } = useToast();
   const [importJson, setImportJson] = useState("");
   
@@ -27,6 +28,7 @@ export default function NodePalette({ nodes = [], edges = [], showJsonExport = f
   };
 
   // JSON export logic that groups condition checks under parent conditions
+  // First node is always placed at the beginning of the array
   const generateFlowData = () => {
     const conditionMap = new Map();
     const conditionCheckMap = new Map();
@@ -115,7 +117,18 @@ export default function NodePalette({ nodes = [], edges = [], showJsonExport = f
         };
       });
 
-    return [...actionNodes, ...conditionNodes, ...standaloneConditionCheckNodes];
+    const allNodes = [...actionNodes, ...conditionNodes, ...standaloneConditionCheckNodes];
+    
+    // Move first node to the beginning of the array
+    if (firstNodeId) {
+      const firstNodeIndex = allNodes.findIndex(node => node.id === firstNodeId);
+      if (firstNodeIndex > 0) {
+        const firstNode = allNodes.splice(firstNodeIndex, 1)[0];
+        allNodes.unshift(firstNode);
+      }
+    }
+    
+    return allNodes;
   };
 
   const flowData = generateFlowData();
@@ -148,41 +161,40 @@ export default function NodePalette({ nodes = [], edges = [], showJsonExport = f
     }
 
     try {
-      let importedData;
-      
-      // Try multiple parsing strategies
-      try {
-        // First try: standard JSON parsing
-        importedData = JSON.parse(importJson);
-      } catch (jsonError) {
-        try {
-          // Second try: evaluate as JavaScript object
-          // Use Function constructor for safer evaluation than eval()
-          const func = new Function('return ' + importJson);
-          importedData = func();
-        } catch (jsError) {
-          throw new Error("Invalid JSON or JavaScript object format");
-        }
-      }
+      // SECURITY FIX: Only accept valid JSON, no arbitrary code execution
+      const importedData = JSON.parse(importJson);
       
       if (!Array.isArray(importedData)) {
         throw new Error("Input must be an array of nodes");
       }
 
-      const { nodes: importedNodes, edges: importedEdges } = convertJsonToFlow(importedData);
+      if (importedData.length === 0) {
+        throw new Error("Input array cannot be empty");
+      }
+
+      // Validate first node type - must be ACTION or CONDITION
+      const firstItem = importedData[0];
+      if (!firstItem.type || (firstItem.type !== "ACTION" && firstItem.type !== "CONDITION")) {
+        throw new Error("First node must be of type ACTION or CONDITION");
+      }
+
+      const { nodes: importedNodes, edges: importedEdges, firstNodeId: importedFirstNodeId } = convertJsonToFlow(importedData);
+      
+      // Remove any edges that target the first node to enforce "no inputs to first node" rule
+      const filteredEdges = importedEdges.filter(edge => edge.target !== importedFirstNodeId);
       
       if (onImportFlow) {
-        onImportFlow(importedNodes, importedEdges);
+        onImportFlow(importedNodes, filteredEdges, importedFirstNodeId);
         toast({
           title: "Success",
-          description: `Imported ${importedNodes.length} nodes successfully`,
+          description: `Imported ${importedNodes.length} nodes successfully${importedFirstNodeId ? ' with first node' : ''}`,
         });
         setImportJson(""); // Clear the textarea after successful import
       }
     } catch (error) {
       toast({
         title: "Import Failed",
-        description: error instanceof Error ? error.message : "Invalid format",
+        description: error instanceof Error ? error.message : "Invalid JSON format",
         variant: "destructive",
       });
     }
@@ -193,11 +205,14 @@ export default function NodePalette({ nodes = [], edges = [], showJsonExport = f
     const edges: Edge[] = [];
     const nodePositions = new Map<string, { x: number; y: number }>();
     
-    // Create clean vertical layout following JSON order
+    // First node (first item in array) is positioned at the top
     const startX = 100;
-    const startY = 100;
+    const startY = 50; // Start higher for first node
     const verticalSpacing = 250; // More space between nodes vertically
     const horizontalSpacing = 350; // Space for condition checks to the right
+    
+    // The first item in the array is the first node
+    const firstNodeId = jsonData.length > 0 ? jsonData[0].id : null;
     
     jsonData.forEach((item, index) => {
       const position = { 
@@ -303,7 +318,7 @@ export default function NodePalette({ nodes = [], edges = [], showJsonExport = f
       }
     });
     
-    return { nodes, edges };
+    return { nodes, edges, firstNodeId };
   };
 
   return (

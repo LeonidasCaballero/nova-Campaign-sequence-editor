@@ -2,12 +2,16 @@ import { memo } from "react";
 import { Handle, Position, NodeProps } from "reactflow";
 import { ConditionCheckNodeData } from "@shared/schema";
 
-function ConditionCheckNode({ data }: NodeProps<ConditionCheckNodeData>) {
+interface ConditionCheckNodeProps extends NodeProps<ConditionCheckNodeData> {
+  data: ConditionCheckNodeData & { isFirstNode?: boolean };
+}
+
+function ConditionCheckNode({ data }: ConditionCheckNodeProps) {
   const conditionCount = data.conditions.length;
   const hasTimeCondition = data.conditions.some(c => c.condition === "HAS_TIME_PASSED");
 
   return (
-    <div className="bg-white rounded-lg shadow-lg border border-gray-200 node-condition-check min-w-[80px]">
+    <div className={`bg-white rounded-lg shadow-lg border border-gray-200 node-condition-check min-w-[80px] ${data.isFirstNode ? 'node-first' : ''}`} data-testid={`node-condition-check${data.isFirstNode ? '-first' : ''}`}>
       <Handle
         type="target"
         position={Position.Left}

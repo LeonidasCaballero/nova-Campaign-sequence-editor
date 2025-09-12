@@ -149,6 +149,28 @@
   border-left: 4px solid hsl(0, 84.2%, 60.2%);
 }
 
+/* First node styling - more box-like, less rounded */
+.node-first {
+  border-radius: 4px !important;
+  border: 3px solid hsl(239, 84%, 67%) !important;
+  box-shadow: 0 0 12px hsla(239, 84%, 67%, 0.3) !important;
+  position: relative;
+}
+
+.node-first::before {
+  content: "FIRST";
+  position: absolute;
+  top: -8px;
+  left: 8px;
+  background: hsl(239, 84%, 67%);
+  color: white;
+  font-size: 8px;
+  font-weight: bold;
+  padding: 2px 6px;
+  border-radius: 2px;
+  z-index: 10;
+}
+
 .connection-preview {
   stroke: hsl(239, 84%, 67%);
   stroke-width: 2;

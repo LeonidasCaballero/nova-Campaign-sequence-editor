@@ -11,6 +11,7 @@ interface PropertiesPanelProps {
   updateNodeData: (nodeId: string, newData: any) => void;
   nodes: Node[];
   edges: Edge[];
+  firstNodeId?: string | null;
 }
 
 export default function PropertiesPanel({
@@ -18,6 +19,7 @@ export default function PropertiesPanel({
   updateNodeData,
   nodes,
   edges,
+  firstNodeId,
 }: PropertiesPanelProps) {
   const getConnectedNodes = (nodeId: string) => {
     const inputs = edges.filter(edge => edge.target === nodeId).map(edge => edge.source);
@@ -227,6 +229,11 @@ export default function PropertiesPanel({
               )}
               <h3 className="font-medium capitalize">
                 {selectedNode.type?.replace("_", " ")} Node
+                {selectedNode.id === firstNodeId && (
+                  <span className="ml-2 text-xs bg-primary text-primary-foreground px-2 py-1 rounded font-bold">
+                    FIRST
+                  </span>
+                )}
               </h3>
             </div>
 
@@ -264,6 +271,14 @@ export default function PropertiesPanel({
                   {outputs.length}
                 </span>
               </div>
+              {selectedNode.id === firstNodeId && (
+                <div className="flex items-center justify-between text-sm">
+                  <span className="text-muted-foreground">Node Type:</span>
+                  <span className="text-xs bg-primary text-primary-foreground px-2 py-1 rounded font-bold">
+                    FIRST NODE
+                  </span>
+                </div>
+              )}
             </div>
           </div>
         </div>

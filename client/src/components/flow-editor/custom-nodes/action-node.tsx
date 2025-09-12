@@ -2,9 +2,13 @@ import { memo } from "react";
 import { Handle, Position, NodeProps } from "reactflow";
 import { ActionNodeData } from "@shared/schema";
 
-function ActionNode({ data }: NodeProps<ActionNodeData>) {
+interface ActionNodeProps extends NodeProps<ActionNodeData> {
+  data: ActionNodeData & { isFirstNode?: boolean };
+}
+
+function ActionNode({ data }: ActionNodeProps) {
   return (
-    <div className="bg-white rounded-lg shadow-lg border border-gray-200 node-action min-w-[100px]">
+    <div className={`bg-white rounded-lg shadow-lg border border-gray-200 node-action min-w-[100px] ${data.isFirstNode ? 'node-first' : ''}`} data-testid={`node-action${data.isFirstNode ? '-first' : ''}`}>
       <Handle
         type="target"
         position={Position.Left}
