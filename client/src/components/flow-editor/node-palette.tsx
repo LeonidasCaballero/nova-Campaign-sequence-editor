@@ -109,9 +109,7 @@ export default function NodePalette({ nodes = [], edges = [], showJsonExport = f
         };
       });
 
-    return {
-      nodes: [...actionNodes, ...conditionNodes, ...standaloneConditionCheckNodes]
-    };
+    return [...actionNodes, ...conditionNodes, ...standaloneConditionCheckNodes];
   };
 
   const flowData = generateFlowData();
