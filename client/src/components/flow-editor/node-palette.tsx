@@ -1,6 +1,7 @@
 import { Node, Edge } from "reactflow";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
+import { Copy } from "lucide-react";
 
 interface NodePaletteProps {
   nodes?: Node[];
@@ -216,7 +217,7 @@ export default function NodePalette({ nodes = [], edges = [], showJsonExport = f
               title="Copy JSON to clipboard"
               data-testid="button-copy-json"
             >
-              <i className="fas fa-copy text-gray-800 text-sm"></i>
+              <Copy className="h-4 w-4 text-muted-foreground" />
             </Button>
           </div>
 
