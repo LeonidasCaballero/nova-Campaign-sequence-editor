@@ -43,7 +43,7 @@ export default function NodePalette({ nodes = [], edges = [], showJsonExport = f
         
         actionNodes.push({
           id: node.id,
-          type: node.type,
+          type: "ACTION",
           action: data.action,
           provider: data.provider,
           ...(data.message && { data: { message: data.message } }),
