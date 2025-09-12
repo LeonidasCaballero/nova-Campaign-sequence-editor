@@ -211,12 +211,13 @@ export default function NodePalette({ nodes = [], edges = [], showJsonExport = f
             <h3 className="font-semibold text-foreground">JSON Export</h3>
             <Button
               size="sm"
-              variant="ghost"
+              variant="outline"
               onClick={copyToClipboard}
-              title="Copy JSON"
+              title="Copy JSON to clipboard"
               data-testid="button-copy-json"
             >
-              <i className="fas fa-copy text-muted-foreground text-sm"></i>
+              <i className="fas fa-copy text-muted-foreground text-sm mr-2"></i>
+              Copy to clipboard
             </Button>
           </div>
 
