@@ -27,12 +27,34 @@ function ConditionCheckNode({ data }: NodeProps<ConditionCheckNodeData>) {
           <h3 className="font-medium text-xs">Check</h3>
         </div>
         
-        <div className="text-xs text-muted-foreground">
-          {conditionCount} condition{conditionCount !== 1 ? 's' : ''}
-          {hasTimeCondition && (
-            <div className="flex items-center space-x-1 mt-0.5">
-              <i className="fas fa-clock text-xs"></i>
-              <span>Time</span>
+        <div className="space-y-1">
+          {data.conditions.slice(0, 3).map((condition, index) => (
+            <div key={index} className="bg-red-50 p-1 rounded border-l-2 border-red-500">
+              <div className="flex items-center space-x-1">
+                {condition.condition === "HAS_TIME_PASSED" && (
+                  <i className="fas fa-clock text-red-600 text-xs"></i>
+                )}
+                {condition.condition.includes("LINKEDIN") && (
+                  <i className="fab fa-linkedin text-red-600 text-xs"></i>
+                )}
+                {condition.condition.includes("NOVA") && (
+                  <i className="fas fa-star text-red-600 text-xs"></i>
+                )}
+                <span className="text-red-800 text-xs font-medium">
+                  {condition.condition.replace(/_/g, ' ').toLowerCase()}
+                </span>
+              </div>
+              <div className="text-red-700 text-xs">
+                = {condition.value.toString()}
+                {condition.timeInHours && (
+                  <span className="ml-1">({condition.timeInHours}h)</span>
+                )}
+              </div>
+            </div>
+          ))}
+          {conditionCount > 3 && (
+            <div className="text-xs text-muted-foreground italic">
+              +{conditionCount - 3} more condition{conditionCount - 3 !== 1 ? 's' : ''}
             </div>
           )}
         </div>

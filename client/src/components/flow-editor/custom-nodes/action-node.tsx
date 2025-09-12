@@ -31,18 +31,19 @@ function ActionNode({ data }: NodeProps<ActionNodeData>) {
         </div>
         
         <div className="space-y-0.5 text-xs">
-          <div className="flex justify-between text-xs">
-            <span className="text-muted-foreground">Provider:</span>
-            <span className="font-mono text-xs">{data.provider}</span>
-          </div>
-          {data.message && (
-            <div className="mt-0.5">
-              <span className="text-muted-foreground text-xs">Message:</span>
-              <div className="text-xs font-mono bg-gray-50 p-0.5 rounded mt-0.5 max-w-full break-words">
-                "{data.message}"
-              </div>
+          <div className="bg-emerald-50 p-1 rounded border-l-2 border-emerald-500">
+            <div className="font-semibold text-emerald-800 text-xs mb-0.5">
+              {data.action === "SEND_MESSAGE" ? "Send Message" : "Send Contact Request"}
             </div>
-          )}
+            <div className="text-emerald-700 text-xs">
+              via {data.provider === "NOVA" ? "Nova" : "LinkedIn"}
+            </div>
+            {data.message && (
+              <div className="mt-1 text-emerald-600 text-xs italic">
+                "{data.message.length > 30 ? data.message.substring(0, 30) + "..." : data.message}"
+              </div>
+            )}
+          </div>
         </div>
       </div>
     </div>

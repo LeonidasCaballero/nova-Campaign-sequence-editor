@@ -47,15 +47,17 @@ export default function FlowEditor() {
 
       if (!sourceNode || !targetNode) return;
 
-      // Actions can connect to actions or condition checks
-      if (sourceNode.type === "action" && targetNode.type === "condition") {
+      // Actions can ONLY connect to conditions
+      if (sourceNode.type === "action" && targetNode.type !== "condition") {
         return; // Not allowed
       }
 
-      // Conditions can only connect to condition checks
+      // Conditions can ONLY connect to condition checks
       if (sourceNode.type === "condition" && targetNode.type !== "condition_check") {
         return; // Not allowed
       }
+
+      // Condition checks can connect to actions or conditions (no restriction)
 
       setEdges((eds) => addEdge(params, eds));
     },
