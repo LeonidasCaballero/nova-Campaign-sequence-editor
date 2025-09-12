@@ -148,10 +148,25 @@ export default function NodePalette({ nodes = [], edges = [], showJsonExport = f
     }
 
     try {
-      const importedData = JSON.parse(importJson);
+      let importedData;
+      
+      // Try multiple parsing strategies
+      try {
+        // First try: standard JSON parsing
+        importedData = JSON.parse(importJson);
+      } catch (jsonError) {
+        try {
+          // Second try: evaluate as JavaScript object
+          // Use Function constructor for safer evaluation than eval()
+          const func = new Function('return ' + importJson);
+          importedData = func();
+        } catch (jsError) {
+          throw new Error("Invalid JSON or JavaScript object format");
+        }
+      }
       
       if (!Array.isArray(importedData)) {
-        throw new Error("JSON must be an array of nodes");
+        throw new Error("Input must be an array of nodes");
       }
 
       const { nodes: importedNodes, edges: importedEdges } = convertJsonToFlow(importedData);
@@ -167,7 +182,7 @@ export default function NodePalette({ nodes = [], edges = [], showJsonExport = f
     } catch (error) {
       toast({
         title: "Import Failed",
-        description: error instanceof Error ? error.message : "Invalid JSON format",
+        description: error instanceof Error ? error.message : "Invalid format",
         variant: "destructive",
       });
     }
@@ -401,7 +416,7 @@ export default function NodePalette({ nodes = [], edges = [], showJsonExport = f
             <textarea
               value={importJson}
               onChange={(e) => setImportJson(e.target.value)}
-              placeholder="Paste your JSON here..."
+              placeholder="Paste your JSON or JavaScript object here..."
               className="w-full h-32 p-3 text-xs font-mono bg-gray-900 text-green-400 rounded-md border border-border resize-none"
               data-testid="textarea-import-json"
             />
