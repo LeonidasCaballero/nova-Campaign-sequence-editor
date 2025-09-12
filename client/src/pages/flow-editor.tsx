@@ -32,7 +32,7 @@ const initialEdges: Edge[] = [];
 export default function FlowEditor() {
   const reactFlowWrapper = useRef<HTMLDivElement>(null);
   const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes);
-  const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges);
+  const [edges, setEdges, defaultOnEdgesChange] = useEdgesState(initialEdges);
   const [reactFlowInstance, setReactFlowInstance] = useState<ReactFlowInstance | null>(null);
   const [selectedNode, setSelectedNode] = useState<Node | null>(null);
   const [showJsonPanel, setShowJsonPanel] = useState(true);
@@ -64,9 +64,59 @@ export default function FlowEditor() {
         return; // Not allowed
       }
       
+      // Add the edge
       setEdges((eds) => addEdge(params, eds));
+      
+      // If action is connecting to condition, add nextStepId to the action
+      if (sourceNode.type === "action" && targetNode.type === "condition") {
+        setNodes((nds) =>
+          nds.map((node) => {
+            if (node.id === params.source) {
+              return {
+                ...node,
+                data: {
+                  ...node.data,
+                  nextStepId: params.target
+                }
+              };
+            }
+            return node;
+          })
+        );
+      }
     },
-    [nodes, setEdges]
+    [nodes, setEdges, setNodes]
+  );
+
+  const onEdgesChange = useCallback(
+    (changes: EdgeChange[]) => {
+      // Handle edge deletions to remove nextStepId from actions
+      changes.forEach((change) => {
+        if (change.type === 'remove') {
+          const edgeToRemove = edges.find(edge => edge.id === change.id);
+          if (edgeToRemove) {
+            const sourceNode = nodes.find(n => n.id === edgeToRemove.source);
+            if (sourceNode && sourceNode.type === 'action') {
+              setNodes((nds) =>
+                nds.map((node) => {
+                  if (node.id === edgeToRemove.source) {
+                    const { nextStepId, ...restData } = node.data;
+                    return {
+                      ...node,
+                      data: restData
+                    };
+                  }
+                  return node;
+                })
+              );
+            }
+          }
+        }
+      });
+      
+      defaultOnEdgesChange(changes);
+    },
+    [defaultOnEdgesChange, edges, nodes, setNodes],
   );
 
   const onNodeClick = useCallback((event: React.MouseEvent, node: Node) => {
