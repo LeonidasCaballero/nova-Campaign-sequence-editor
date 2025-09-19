@@ -50,7 +50,7 @@ export default function NodePalette({ nodes = [], edges = [], showJsonExport = f
         actionNodes.push({
           id: node.id,
           type: "ACTION",
-          ...(data.title && { title: data.title }),
+          title: data.title || "",
           ...(data.description && { description: data.description }),
           child: {
             action: data.action,
@@ -91,7 +91,7 @@ export default function NodePalette({ nodes = [], edges = [], showJsonExport = f
       return {
         id: conditionNode.id,
         type: "CONDITION",
-        ...(data?.title && { title: data.title }),
+        title: data?.title || "",
         ...(data?.description && { description: data.description }),
         child: conditionNode.checks
       };
