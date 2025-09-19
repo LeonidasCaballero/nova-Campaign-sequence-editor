@@ -25,10 +25,16 @@ function ConditionNode({ data }: ConditionNodeProps) {
       />
       
       <div className="p-1.5">
+        {(data as any).title && (
+          <div className="mb-1 text-xs font-semibold text-gray-800">
+            {(data as any).title}
+          </div>
+        )}
+        
         <div className="flex items-center space-x-1 mb-1">
           <i className="fas fa-question-circle text-amber-600 text-xs"></i>
           <h3 className="font-medium text-xs">
-            {(data as any).title || "Condition"}
+            Condition
           </h3>
         </div>
         

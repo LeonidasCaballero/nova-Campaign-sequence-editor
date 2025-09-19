@@ -25,6 +25,12 @@ function ActionNode({ data }: ActionNodeProps) {
       />
       
       <div className="p-1.5">
+        {(data as any).title && (
+          <div className="mb-1 text-xs font-semibold text-gray-800">
+            {(data as any).title}
+          </div>
+        )}
+        
         <div className="flex items-center space-x-1 mb-1">
           {data.action === "SEND_MESSAGE" ? (
             <i className="fas fa-envelope text-emerald-600 text-xs"></i>
@@ -32,7 +38,7 @@ function ActionNode({ data }: ActionNodeProps) {
             <i className="fas fa-play text-emerald-600 text-xs"></i>
           )}
           <h3 className="font-medium text-xs">
-            {(data as any).title || (data.action === "SEND_MESSAGE" ? "Message" : "Contact Request")}
+            {data.action === "SEND_MESSAGE" ? "Message" : "Contact Request"}
           </h3>
         </div>
         
