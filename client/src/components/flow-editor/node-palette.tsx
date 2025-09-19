@@ -50,6 +50,8 @@ export default function NodePalette({ nodes = [], edges = [], showJsonExport = f
         actionNodes.push({
           id: node.id,
           type: "ACTION",
+          ...(data.title && { title: data.title }),
+          ...(data.description && { description: data.description }),
           child: {
             action: data.action,
             provider: data.provider,
@@ -84,11 +86,16 @@ export default function NodePalette({ nodes = [], edges = [], showJsonExport = f
     });
 
     // Build final condition nodes with child structure
-    const conditionNodes = Array.from(conditionMap.values()).map((conditionNode: any) => ({
-      id: conditionNode.id,
-      type: "CONDITION",
-      child: conditionNode.checks
-    }));
+    const conditionNodes = Array.from(conditionMap.values()).map((conditionNode: any) => {
+      const data = nodes.find(n => n.id === conditionNode.id)?.data as any;
+      return {
+        id: conditionNode.id,
+        type: "CONDITION",
+        ...(data?.title && { title: data.title }),
+        ...(data?.description && { description: data.description }),
+        child: conditionNode.checks
+      };
+    });
 
     // Handle standalone condition_check nodes (not connected to any condition)
     const connectedConditionCheckIds = new Set();
@@ -272,6 +279,8 @@ export default function NodePalette({ nodes = [], edges = [], showJsonExport = f
           data: {
             action: actionData.action,
             provider: actionData.provider,
+            ...(item.title && { title: item.title }),
+            ...(item.description && { description: item.description }),
             ...(actionData.data?.message && { message: actionData.data.message }),
             ...(actionData.nextStepId && { nextStepId: actionData.nextStepId }),
           },
@@ -295,6 +304,8 @@ export default function NodePalette({ nodes = [], edges = [], showJsonExport = f
           position,
           data: {
             child: item.child || [],
+            ...(item.title && { title: item.title }),
+            ...(item.description && { description: item.description }),
           },
         };
         nodes.push(node);

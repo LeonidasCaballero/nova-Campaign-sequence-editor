@@ -27,8 +27,16 @@ function ConditionNode({ data }: ConditionNodeProps) {
       <div className="p-1.5">
         <div className="flex items-center space-x-1 mb-1">
           <i className="fas fa-question-circle text-amber-600 text-xs"></i>
-          <h3 className="font-medium text-xs">Condition</h3>
+          <h3 className="font-medium text-xs">
+            {(data as any).title || "Condition"}
+          </h3>
         </div>
+        
+        {(data as any).description && (
+          <div className="mb-1 text-xs text-gray-600">
+            {(data as any).description.length > 50 ? (data as any).description.substring(0, 50) + "..." : (data as any).description}
+          </div>
+        )}
         
         <div className="text-xs text-muted-foreground">
           Links to checks

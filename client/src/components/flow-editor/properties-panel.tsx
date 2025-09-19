@@ -42,6 +42,27 @@ export default function PropertiesPanel({
     return (
       <div className="space-y-3">
         <div>
+          <Label>Title</Label>
+          <Input
+            value={data.title || ""}
+            onChange={(e) => updateAction("title", e.target.value)}
+            placeholder="Enter action title..."
+            data-testid="input-action-title"
+          />
+        </div>
+
+        <div>
+          <Label>Description</Label>
+          <Textarea
+            value={data.description || ""}
+            onChange={(e) => updateAction("description", e.target.value)}
+            placeholder="Enter action description..."
+            rows={2}
+            data-testid="textarea-action-description"
+          />
+        </div>
+
+        <div>
           <Label>Action Type</Label>
           <Select
             value={data.action}
@@ -85,6 +106,43 @@ export default function PropertiesPanel({
             />
           </div>
         )}
+      </div>
+    );
+  };
+
+  const renderConditionNodeProperties = (node: Node) => {
+    const data = node.data as any;
+    
+    const updateCondition = (field: string, value: any) => {
+      updateNodeData(node.id, { ...data, [field]: value });
+    };
+
+    return (
+      <div className="space-y-3">
+        <div>
+          <Label>Title</Label>
+          <Input
+            value={data.title || ""}
+            onChange={(e) => updateCondition("title", e.target.value)}
+            placeholder="Enter condition title..."
+            data-testid="input-condition-title"
+          />
+        </div>
+
+        <div>
+          <Label>Description</Label>
+          <Textarea
+            value={data.description || ""}
+            onChange={(e) => updateCondition("description", e.target.value)}
+            placeholder="Enter condition description..."
+            rows={2}
+            data-testid="textarea-condition-description"
+          />
+        </div>
+
+        <div className="text-sm text-muted-foreground">
+          Condition nodes link to condition checks
+        </div>
       </div>
     );
   };
@@ -238,12 +296,8 @@ export default function PropertiesPanel({
             </div>
 
             {selectedNode.type === "action" && renderActionNodeProperties(selectedNode)}
+            {selectedNode.type === "condition" && renderConditionNodeProperties(selectedNode)}
             {selectedNode.type === "condition_check" && renderConditionCheckNodeProperties(selectedNode)}
-            {selectedNode.type === "condition" && (
-              <div className="text-sm text-muted-foreground">
-                Condition nodes link to condition checks
-              </div>
-            )}
           </div>
 
           <div>

@@ -32,9 +32,15 @@ function ActionNode({ data }: ActionNodeProps) {
             <i className="fas fa-play text-emerald-600 text-xs"></i>
           )}
           <h3 className="font-medium text-xs">
-            {data.action === "SEND_MESSAGE" ? "Message" : "Contact Request"}
+            {(data as any).title || (data.action === "SEND_MESSAGE" ? "Message" : "Contact Request")}
           </h3>
         </div>
+        
+        {(data as any).description && (
+          <div className="mb-1 text-xs text-gray-600">
+            {(data as any).description.length > 50 ? (data as any).description.substring(0, 50) + "..." : (data as any).description}
+          </div>
+        )}
         
         <div className="space-y-0.5 text-xs">
           <div className="bg-emerald-50 p-1 rounded border-l-2 border-emerald-500">
