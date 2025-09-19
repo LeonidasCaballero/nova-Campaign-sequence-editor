@@ -37,7 +37,7 @@ function ActionNode({ data }: ActionNodeProps) {
           ) : (
             <i className="fas fa-play text-emerald-600 text-xs"></i>
           )}
-          <h3 className="font-medium text-xs">
+          <h3 className="font-normal text-[10px] text-gray-500">
             {data.action === "SEND_MESSAGE" ? "Message" : "Contact Request"}
           </h3>
         </div>

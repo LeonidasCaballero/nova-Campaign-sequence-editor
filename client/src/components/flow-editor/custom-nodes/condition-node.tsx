@@ -33,7 +33,7 @@ function ConditionNode({ data }: ConditionNodeProps) {
         
         <div className="flex items-center space-x-1 mb-1">
           <i className="fas fa-question-circle text-amber-600 text-xs"></i>
-          <h3 className="font-medium text-xs">
+          <h3 className="font-normal text-[10px] text-gray-500">
             Condition
           </h3>
         </div>
