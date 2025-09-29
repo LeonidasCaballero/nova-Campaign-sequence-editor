@@ -54,11 +54,23 @@ function ActionNode({ data }: ActionNodeProps) {
               {data.action === "SEND_MESSAGE" ? "Send Message" : "Send Contact Request"}
             </div>
             <div className="text-emerald-700 text-xs">
-              via {data.provider === "NOVA" ? "Nova" : "LinkedIn"}
+              via {(() => {
+                switch ((data.provider as string)) {
+                  case "NOVA": return "Nova";
+                  case "EMAIL": return "Email";
+                  case "LINKEDIN": return "LinkedIn";
+                  default: return data.provider;
+                }
+              })()}
             </div>
+            {(data as any).subject && (
+              <div className="mt-1 text-emerald-600 text-xs italic">
+                <strong>Subject:</strong> "{(data as any).subject.length > 30 ? (data as any).subject.substring(0, 30) + "..." : (data as any).subject}"
+              </div>
+            )}
             {data.message && (
               <div className="mt-1 text-emerald-600 text-xs italic">
-                "{data.message.length > 30 ? data.message.substring(0, 30) + "..." : data.message}"
+                {(data as any).subject ? <strong>Message:</strong> : ""} "{data.message.length > 30 ? data.message.substring(0, 30) + "..." : data.message}"
               </div>
             )}
           </div>

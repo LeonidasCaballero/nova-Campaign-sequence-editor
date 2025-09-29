@@ -90,9 +90,23 @@ export default function PropertiesPanel({
             <SelectContent>
               <SelectItem value="NOVA">NOVA</SelectItem>
               <SelectItem value="LINKEDIN">LINKEDIN</SelectItem>
+              <SelectItem value="EMAIL">EMAIL</SelectItem>
             </SelectContent>
           </Select>
         </div>
+
+        {data.action === "SEND_MESSAGE" && data.provider === "EMAIL" && (
+          <div>
+            <Label>Subject</Label>
+            <Textarea
+              value={data.subject || ""}
+              onChange={(e) => updateAction("subject", e.target.value)}
+              placeholder="Enter email subject..."
+              rows={2}
+              data-testid="textarea-subject"
+            />
+          </div>
+        )}
 
         {data.action === "SEND_MESSAGE" && (
           <div>

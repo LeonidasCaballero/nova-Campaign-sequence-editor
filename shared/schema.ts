@@ -22,7 +22,7 @@ export const flowSequences = pgTable("flow_sequences", {
 // Individual action schema
 export const actionSchema = z.object({
   action: z.enum(["SEND_CONTACT_REQUEST", "SEND_MESSAGE"]),
-  provider: z.enum(["NOVA", "LINKEDIN"]),
+  provider: z.enum(["NOVA", "LINKEDIN", "EMAIL"]),
   message: z.string().optional(),
 });
 

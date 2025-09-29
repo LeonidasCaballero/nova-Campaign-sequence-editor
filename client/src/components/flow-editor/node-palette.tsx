@@ -55,7 +55,12 @@ export default function NodePalette({ nodes = [], edges = [], showJsonExport = f
           child: {
             action: data.action,
             provider: data.provider,
-            ...(data.message && { data: { message: data.message } }),
+            ...((data.message || data.subject) && { 
+              data: { 
+                ...(data.message && { message: data.message }),
+                ...(data.subject && { subject: data.subject })
+              } 
+            }),
             ...(data.nextStepId && { nextStepId: data.nextStepId }),
           }
         });
@@ -282,6 +287,7 @@ export default function NodePalette({ nodes = [], edges = [], showJsonExport = f
             ...(item.title && { title: item.title }),
             ...(item.description && { description: item.description }),
             ...(actionData.data?.message && { message: actionData.data.message }),
+            ...(actionData.data?.subject && { subject: actionData.data.subject }),
             ...(actionData.nextStepId && { nextStepId: actionData.nextStepId }),
           },
         };
