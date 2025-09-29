@@ -108,7 +108,7 @@ export default function PropertiesPanel({
           </div>
         )}
 
-        {data.action === "SEND_MESSAGE" && (
+        {(data.action === "SEND_MESSAGE" || (data.action === "SEND_CONTACT_REQUEST" && data.provider === "NOVA")) && (
           <div>
             <Label>Message</Label>
             <Textarea
