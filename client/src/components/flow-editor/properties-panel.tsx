@@ -90,7 +90,9 @@ export default function PropertiesPanel({
             <SelectContent>
               <SelectItem value="NOVA">NOVA</SelectItem>
               <SelectItem value="LINKEDIN">LINKEDIN</SelectItem>
-              <SelectItem value="EMAIL">EMAIL</SelectItem>
+              {data.action === "SEND_MESSAGE" && (
+                <SelectItem value="EMAIL">EMAIL</SelectItem>
+              )}
             </SelectContent>
           </Select>
         </div>
